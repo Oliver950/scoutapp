@@ -16,6 +16,7 @@ class Autonomous extends StatefulWidget{
     int _score2 =0;
     String _output2 = '';
     double _rotation = 0;
+    String _image = '';
     List _tapLocations = [];
     final List _undoStack = [];
 
@@ -24,7 +25,7 @@ class Autonomous extends StatefulWidget{
         setState(() {
           _undoStack.removeLast();
           _tapLocations = _undoStack.last.toList();
-          _output2 ='$_score1 $_score2 $_tapLocations $_rotation';
+          _output2 ='$_score1 $_score2 $_tapLocations $_image';
         });
       }
     }
@@ -62,7 +63,7 @@ class Autonomous extends StatefulWidget{
                   setState((){
                     _score1--;
                   });
-                  _output2 ='$_score1 $_score2 $_tapLocations $_rotation';
+                  _output2 ='$_score1 $_score2 $_tapLocations $_image';
                 },
                 child: const Icon(Icons.remove),
               ),
@@ -72,7 +73,7 @@ class Autonomous extends StatefulWidget{
                   setState((){
                     _score1++;
                   });
-                  _output2 ='$_score1 $_score2 $_tapLocations $_rotation';
+                  _output2 ='$_score1 $_score2 $_tapLocations $_image';
                 },
                 child: const Icon(Icons.add),
               ),
@@ -87,7 +88,7 @@ class Autonomous extends StatefulWidget{
                   setState((){
                     _score2--;
                   });
-                  _output2 ='$_score1 $_score2 $_tapLocations $_rotation';
+                  _output2 ='$_score1 $_score2 $_tapLocations $_image';
                 },
                 child: const Icon(Icons.remove),
               ),
@@ -97,7 +98,7 @@ class Autonomous extends StatefulWidget{
                   setState((){
                     _score2++;
                   });
-                  _output2 ='$_score1 $_score2 $_tapLocations $_rotation';
+                  _output2 ='$_score1 $_score2 $_tapLocations $_image';
                 },
                 child: const Icon(Icons.add),
               ),
@@ -124,7 +125,7 @@ class Autonomous extends StatefulWidget{
                       }else {
                         _undoStack.add([details.localPosition]);
                       }
-                      _output2 ='$_score1 $_score2 $_tapLocations $_rotation';
+                      _output2 ='$_score1 $_score2 $_tapLocations $_image';
                     });
                     },
                     child: Stack(
@@ -164,15 +165,17 @@ class Autonomous extends StatefulWidget{
                     setState(() {
                       if (_rotation == 0){
                         _rotation = pi;
+                        _image = 'Rotated';
                       } else {
                         _rotation = 0;
+                        _image = 'Default';
                       }
                       _tapLocations = _tapLocations.map((location){
                         return Offset((345-location.dx).toDouble(),(171-location.dy).toDouble());
                       }).toList();
                       _undoStack.add(_tapLocations.toList());
                     });
-                    _output2 ='$_score1 $_score2 $_tapLocations $_rotation';
+                    _output2 ='$_score1 $_score2 $_tapLocations $_image';
                   },
                   child: const Icon(Icons.rotate_right),
                 ),
