@@ -28,6 +28,7 @@ class _MainAppState extends State {
   String _output = '';
   Offset _startLocation = const Offset(-25, -25);
   double _rotation = 0;
+  String _image = '';
 @override
 Widget build(BuildContext context) {
   return MaterialApp(
@@ -63,7 +64,7 @@ Widget build(BuildContext context) {
               onChanged: (value) {
                 setState(() {
                   _scouterName = value;
-                  _output ='$_scouterName $_event $_match $_robot $_startLocation $_rotation';
+                  _output ='$_scouterName $_event $_match $_robot $_startLocation $_image';
                 });
               },
               decoration: const InputDecoration(
@@ -89,7 +90,7 @@ Widget build(BuildContext context) {
                   setState(() {
 
                     _event = value;
-                    _output ='$_scouterName $_event $_match $_robot $_startLocation $_rotation';
+                    _output ='$_scouterName $_event $_match $_robot $_startLocation $_image';
                   });
                 },
                 decoration: const InputDecoration(
@@ -114,7 +115,7 @@ Widget build(BuildContext context) {
                     onChanged: (value) {
                       setState(() {
                         _match = value;
-                        _output ='$_scouterName $_event $_match $_robot $_startLocation $_rotation';
+                        _output ='$_scouterName $_event $_match $_robot $_startLocation $_image';
                       });
                     },
                     keyboardType: TextInputType.number,
@@ -148,7 +149,7 @@ Widget build(BuildContext context) {
                   onChanged: (value) {
                     setState(() {
                       _robot = value as String;
-                      _output ='$_scouterName $_event $_match $_robot $_startLocation $_rotation';
+                      _output ='$_scouterName $_event $_match $_robot $_startLocation $_image';
                     });
                   },
                 )
@@ -171,7 +172,7 @@ Widget build(BuildContext context) {
                     (details.localPosition.dx >=305 && details.localPosition.dx <=345)){
                     setState(() {
                       _startLocation = details.localPosition;
-                      _output ='$_scouterName $_event $_match $_robot $_startLocation $_rotation';
+                      _output ='$_scouterName $_event $_match $_robot $_startLocation $_image';
                     });
                     }
                   },
@@ -211,12 +212,14 @@ Widget build(BuildContext context) {
                     setState(() {
                       if (_rotation == 0){
                         _rotation = pi;
+                        _image = 'Rotated';
                       } else {
                         _rotation = 0;
+                        _image = 'Default';
                       }
                     });
                      _startLocation = Offset (345 - _startLocation.dx, 171 - _startLocation.dy);
-                    _output ='$_scouterName $_event $_match $_robot $_startLocation $_rotation';
+                    _output ='$_scouterName $_event $_match $_robot $_startLocation $_image';
                   },
                   child: const Icon(Icons.rotate_right),
                   )

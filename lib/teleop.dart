@@ -24,6 +24,7 @@ class _ThirdRouteState extends State<Teleop> {
   String _pickupMethod = 'NA';
   List _tapLocations = [];
   final List _undoStack = [];
+  String _image = '';
 
     void _undo() {
       if (_undoStack.length >1){
@@ -216,8 +217,10 @@ class _ThirdRouteState extends State<Teleop> {
                     setState(() {
                       if (_rotation == 0){
                         _rotation = pi;
+                        _image = 'Rotated';
                       } else {
                         _rotation = 0;
+                        _image = 'Default';
                       }
                       _tapLocations = _tapLocations.map((location){
                         return Offset((345-location.dx).toDouble(),(171-location.dy).toDouble());
