@@ -31,7 +31,7 @@ class _ThirdRouteState extends State<Teleop> {
         setState(() {
           _undoStack.removeLast();
           _tapLocations = _undoStack.last.toList();
-          _output3 ='$_score1 $_score2 $_score3 $_pickupMethod $_tapLocations $_rotation';
+          _output3 ='$_score1 $_score2 $_score3 $_pickupMethod $_tapLocations $_image';
         });
       }
     }
@@ -65,7 +65,7 @@ class _ThirdRouteState extends State<Teleop> {
                   setState((){
                     _score1--;
                   });
-                  _output3 ='$_score1 $_score2 $_score3 $_pickupMethod $_tapLocations $_rotation';
+                  _output3 ='$_score1 $_score2 $_score3 $_pickupMethod $_tapLocations $_image';
                 },
                 child: const Icon(Icons.remove),
               ),
@@ -75,7 +75,7 @@ class _ThirdRouteState extends State<Teleop> {
                   setState((){
                     _score1++;
                   });
-                  _output3 ='$_score1 $_score2 $_score3 $_pickupMethod $_tapLocations $_rotation';
+                  _output3 ='$_score1 $_score2 $_score3 $_pickupMethod $_tapLocations $_image';
                 },
                 child: const Icon(Icons.add),
               ),
@@ -91,7 +91,7 @@ class _ThirdRouteState extends State<Teleop> {
                   setState((){
                     _score2--;
                   });
-                  _output3 ='$_score1 $_score2 $_score3 $_pickupMethod $_tapLocations $_rotation';
+                  _output3 ='$_score1 $_score2 $_score3 $_pickupMethod $_tapLocations $_image';
                 },
                 child: const Icon(Icons.remove),
               ),
@@ -101,7 +101,7 @@ class _ThirdRouteState extends State<Teleop> {
                   setState((){
                     _score2++;
                   });
-                  _output3 ='$_score1 $_score2 $_score3 $_pickupMethod $_tapLocations $_rotation';
+                  _output3 ='$_score1 $_score2 $_score3 $_pickupMethod $_tapLocations $_image';
                 },
                 child: const Icon(Icons.add),
               ),
@@ -117,7 +117,7 @@ class _ThirdRouteState extends State<Teleop> {
                   setState((){
                     _score3--;
                   });
-                  _output3 ='$_score1 $_score2 $_score3 $_pickupMethod $_tapLocations $_rotation';
+                  _output3 ='$_score1 $_score2 $_score3 $_pickupMethod $_tapLocations $_image';
                 },
                 child: const Icon(Icons.remove),
               ),
@@ -127,7 +127,7 @@ class _ThirdRouteState extends State<Teleop> {
                   setState((){
                     _score3++;
                   });
-                  _output3 ='$_score1 $_score2 $_score3 $_pickupMethod $_tapLocations $_rotation';
+                  _output3 ='$_score1 $_score2 $_score3 $_pickupMethod $_tapLocations $_image';
                 },
                 child: const Icon(Icons.add),
               ),
@@ -150,7 +150,7 @@ class _ThirdRouteState extends State<Teleop> {
                   onChanged: (value) {
                     setState(() {
                       _pickupMethod = value as String;
-                     _output3 ='$_score1 $_score2 $_score3 $_pickupMethod $_tapLocations $_rotation';
+                     _output3 ='$_score1 $_score2 $_score3 $_pickupMethod $_tapLocations $_image';
                     });
                   },
                 )
@@ -177,7 +177,7 @@ class _ThirdRouteState extends State<Teleop> {
                       }else {
                         _undoStack.add([details.localPosition]);
                       }
-                      _output3 ='$_score1 $_score2 $_score3 $_pickupMethod $_tapLocations $_rotation';
+                      _output3 ='$_score1 $_score2 $_score3 $_pickupMethod $_tapLocations $_image';
                     });
                     },
                     child: Stack(
@@ -227,7 +227,7 @@ class _ThirdRouteState extends State<Teleop> {
                       }).toList();
                       _undoStack.add(_tapLocations.toList());
                     });
-                    _output3 ='$_score1 $_score2 $_score3 $_pickupMethod $_tapLocations $_rotation';
+                    _output3 ='$_score1 $_score2 $_score3 $_pickupMethod $_tapLocations $_image';
                   },
                   child: const Icon(Icons.rotate_right),
                 ),
