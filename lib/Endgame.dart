@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'QrcodeMaker.dart';
+import 'matchOutput.dart';
 
 class Endgame extends StatefulWidget {  
   final String output3;
