@@ -67,10 +67,11 @@ class _FourthRouteState extends State<Endgame> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
+              const Text('Endgame Objective Timer'),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Text('Endgame Objective Timer:   '),
+                  
                   ElevatedButton(
                     child: Text(_isRunning? 'Stop': 'Start'),
                     onPressed: (){
