@@ -4,14 +4,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'autonomous.dart';
 
-class MainApp extends StatefulWidget {
-  const MainApp({super.key});
+class Pregame extends StatefulWidget {
+  const Pregame({super.key});
 
 @override
-_MainAppState createState() => _MainAppState();
+_pregameAppState createState() => _pregameAppState();
 }
 
-class _MainAppState extends State {
+class _pregameAppState extends State {
   String _scouterName = '';
   String _event = '';
   String _match = '';
