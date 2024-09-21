@@ -44,7 +44,7 @@ Widget build(BuildContext context) {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text('Oakbotics Scouting App',
+            const Text('Oakbotics Scouting App',
             style: TextStyle(
               fontSize: 24
             )),
@@ -65,7 +65,7 @@ Widget build(BuildContext context) {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => Pregame()),
+                        builder: (context) => const Pregame()),
                     );
                   },
                   child: const Text('        Scouting        '),

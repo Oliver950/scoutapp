@@ -8,10 +8,10 @@ class Pregame extends StatefulWidget {
   const Pregame({super.key});
 
 @override
-_pregameAppState createState() => _pregameAppState();
+_PregameAppState createState() => _PregameAppState();
 }
 
-class _pregameAppState extends State {
+class _PregameAppState extends State {
   String _scouterName = '';
   String _event = '';
   String _match = '';

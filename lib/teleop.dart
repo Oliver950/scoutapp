@@ -1,6 +1,6 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
-import 'Endgame.dart';
+import 'endgame.dart';
 
 class Teleop extends StatefulWidget {  
   final String output1;

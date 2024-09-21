@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'matchOutput.dart';
+import 'match_output.dart';
 
 class Endgame extends StatefulWidget {  
   final String output3;
@@ -27,10 +27,10 @@ class _FourthRouteState extends State<Endgame> {
   @override
   void initState() {
     super.initState();
-    _StartTimer();
+    _startTimer();
   }
 
-  void _StartTimer(){
+  void _startTimer(){
     Stream.periodic(const Duration(milliseconds: 100), (i){
       if (_isRunning) {
         setState(() {
@@ -161,7 +161,7 @@ class _FourthRouteState extends State<Endgame> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => QrcodeMaker(
+                        builder: (context) => MatchOutput(
                           output4: _output4,
                           output3: widget.output3,
                           output2: widget.output2,

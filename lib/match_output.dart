@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 
-class QrcodeMaker extends StatelessWidget {  
+class MatchOutput extends StatelessWidget {  
   final String output4;
   final String output3;
   final String output2;
   final String output1;  
   
-  const QrcodeMaker({super.key,
+  const MatchOutput({super.key,
    required this.output4,
    required this.output3,
    required this.output2,
