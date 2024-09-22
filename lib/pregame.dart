@@ -15,6 +15,7 @@ class _PregameAppState extends State {
   String _scouterName = '';
   String _event = '';
   String _match = '';
+  String _team = '';
   String _robot = 'R1';
   String _output = '';
   Offset _startLocation = const Offset(-25, -25);
@@ -55,7 +56,7 @@ Widget build(BuildContext context) {
               onChanged: (value) {
                 setState(() {
                   _scouterName = value;
-                  _output ='$_scouterName $_event $_match $_robot $_startLocation $_image';
+                  _output ='$_scouterName $_event $_match $_team $_robot $_startLocation $_image';
                 });
               },
               decoration: const InputDecoration(
@@ -81,12 +82,38 @@ Widget build(BuildContext context) {
                   setState(() {
 
                     _event = value;
-                    _output ='$_scouterName $_event $_match $_robot $_startLocation $_image';
+                    _output ='$_scouterName $_event $_match $_team $_robot $_startLocation $_image';
                   });
                 },
                 decoration: const InputDecoration(
                   border: OutlineInputBorder(),
                   labelText: 'Event'
+                ),
+                inputFormatters: [
+                  FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z0-9]'))
+                ],
+              ),
+            )
+              ]
+            ),
+                         const SizedBox(height: 12,),
+             Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+            SizedBox(
+              width: 250,
+              height: 35,
+              child: TextField(
+                onChanged: (value) {
+                  setState(() {
+
+                    _match = value;
+                    _output ='$_scouterName $_event $_match $_team $_robot $_startLocation $_image';
+                  });
+                },
+                decoration: const InputDecoration(
+                  border: OutlineInputBorder(),
+                  labelText: 'Match Number'
                 ),
                 inputFormatters: [
                   FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z0-9]'))
@@ -105,14 +132,14 @@ Widget build(BuildContext context) {
                   child: TextField(
                     onChanged: (value) {
                       setState(() {
-                        _match = value;
-                        _output ='$_scouterName $_event $_match $_robot $_startLocation $_image';
+                        _team = value;
+                        _output ='$_scouterName $_event $_match $_team $_robot $_startLocation $_image';
                       });
                     },
                     keyboardType: TextInputType.number,
                     decoration: const InputDecoration(
                       border: OutlineInputBorder(),
-                      labelText: 'Match Number'
+                      labelText: 'Team Number'
                     ),
                     inputFormatters: [
                       FilteringTextInputFormatter.digitsOnly
@@ -140,7 +167,7 @@ Widget build(BuildContext context) {
                   onChanged: (value) {
                     setState(() {
                       _robot = value as String;
-                      _output ='$_scouterName $_event $_match $_robot $_startLocation $_image';
+                      _output ='$_scouterName $_event $_match $_team $_robot $_startLocation $_image';
                     });
                   },
                 )
@@ -163,7 +190,7 @@ Widget build(BuildContext context) {
                     (details.localPosition.dx >=305 && details.localPosition.dx <=345)){
                     setState(() {
                       _startLocation = details.localPosition;
-                      _output ='$_scouterName $_event $_match $_robot $_startLocation $_image';
+                      _output ='$_scouterName $_event $_match $_team $_robot $_startLocation $_image';
                     });
                     }
                   },
@@ -210,7 +237,7 @@ Widget build(BuildContext context) {
                       }
                     });
                      _startLocation = Offset (345 - _startLocation.dx, 171 - _startLocation.dy);
-                    _output ='$_scouterName $_event $_match $_robot $_startLocation $_image';
+                    _output ='$_scouterName $_event $_match $_team $_robot $_startLocation $_image';
                   },
                   child: const Icon(Icons.rotate_right),
                   )
