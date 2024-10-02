@@ -1,6 +1,7 @@
 import 'dart:core';
 import 'package:flutter/material.dart';
 import 'package:scoutapp/pregame.dart';
+import 'match_Display.dart';
 
 void main() {
   runApp(
@@ -69,6 +70,20 @@ Widget build(BuildContext context) {
                     );
                   },
                   child: const Text('        Scouting        '),
+                ),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    textStyle: const TextStyle(fontSize:16),
+                    padding: const EdgeInsets.all(12),
+                  ),
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const MatchDisplay()),
+                    );
+                  },
+                  child: const Text('        Matches        '),
                 )
                   ],
                 )

@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'match_Display.dart';
 
 class MatchOutput extends StatelessWidget {  
   final String output4;
   final String output3;
   final String output2;
   final String output1;  
+  
   
   const MatchOutput({super.key,
    required this.output4,
@@ -17,6 +19,7 @@ class MatchOutput extends StatelessWidget {
 
   @override
   Widget build(BuildContext context){
+    String _FinalOutput = '$output1 $output2 $output3 $output4';
     return Theme(
       data: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue)
@@ -64,7 +67,7 @@ class MatchOutput extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text('Final Output: $output1 $output2 $output3 $output4')
+                  Text('Final Output: $_FinalOutput')
                 ],
               ),
               const SizedBox(height: 12,),
@@ -76,6 +79,22 @@ class MatchOutput extends StatelessWidget {
                       Navigator.pop(context);
                     },
                     child: const Text('Go Back'),
+                  )
+                ],
+              ),
+                Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  ElevatedButton(
+                    onPressed: (){
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => MatchDisplay (
+                            finaloutput: _FinalOutput
+                          )));
+                    },
+                    child: const Text('Save Output'),
                   )
                 ],
               )
