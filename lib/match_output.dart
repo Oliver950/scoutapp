@@ -79,13 +79,8 @@ class MatchOutput extends StatelessWidget {
                       Navigator.pop(context);
                     },
                     child: const Text('Go Back'),
-                  )
-                ],
-              ),
-                Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  ElevatedButton(
+                  ),
+                    ElevatedButton(
                     onPressed: (){
                       Navigator.push(
                         context,
