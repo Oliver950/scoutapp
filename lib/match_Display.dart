@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'pregame.dart';
 import 'package:qr_flutter/qr_flutter.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class MatchDisplay extends StatefulWidget {
   final String finaloutput;
@@ -19,8 +20,10 @@ class _MatchDisplayState extends State<MatchDisplay> {
   @override
   void initState() {
     super.initState();
-    if (widget.finaloutput.isNotEmpty) {
+    _loadOutputs();
+    if (widget.finaloutput.isNotEmpty){
       MatchDisplay.outputs.add(widget.finaloutput);
+      _saveOutputs();
     }
   }
 
@@ -38,6 +41,7 @@ class _MatchDisplayState extends State<MatchDisplay> {
     setState(() {
       MatchDisplay.outputs.removeWhere((output) => selectedOutputs.contains(output));
       selectedOutputs.clear();
+      _saveOutputs();
     });
   }
 
@@ -45,6 +49,18 @@ class _MatchDisplayState extends State<MatchDisplay> {
       setState(() {
         qrData = selectedOutputs.join(',');
       });
+  }
+
+  Future<void> _loadOutputs() async{
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      MatchDisplay.outputs = prefs.getStringList('outputs') ?? [];
+    });
+  }
+
+  Future<void> _saveOutputs() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    prefs.setStringList('outputs', MatchDisplay.outputs);
   }
 
   @override
