@@ -17,21 +17,20 @@ class Teleop extends StatefulWidget {
   
 class _ThirdRouteState extends State<Teleop> {  
   String _output3 = '';
-  int _score1 = 0;
-  int _score2 = 0;
-  int _score3 = 0;
+  int _ampScore = 0;
+  int _speakerScore = 0;
+  int _ampedSpeaker = 0;
   double _rotation = 0;
   String _pickupMethod = 'NA';
   List _tapLocations = [];
   final List _undoStack = [];
-  String _image = '';
+  String _image = 'False';
 
     void _undo() {
       if (_undoStack.length >1){
         setState(() {
           _undoStack.removeLast();
           _tapLocations = _undoStack.last.toList();
-          _output3 ='$_score1 $_score2 $_score3 $_pickupMethod $_tapLocations $_image';
         });
       }
     }
@@ -59,23 +58,24 @@ class _ThirdRouteState extends State<Teleop> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-              const Text('Score #1   '),
+                  Container(
+                    width: 150,
+                    child: Text('Amp Scores'),
+                  ),
               ElevatedButton (
                 onPressed: () {
                   setState((){
-                    _score1--;
+                    _ampScore--;
                   });
-                  _output3 ='$_score1 $_score2 $_score3 $_pickupMethod $_tapLocations $_image';
                 },
                 child: const Icon(Icons.remove),
               ),
-              Text('   $_score1   '),
+              Text('   $_ampScore   '),
               ElevatedButton (
                 onPressed: () {
                   setState((){
-                    _score1++;
+                    _ampScore++;
                   });
-                  _output3 ='$_score1 $_score2 $_score3 $_pickupMethod $_tapLocations $_image';
                 },
                 child: const Icon(Icons.add),
               ),
@@ -85,23 +85,24 @@ class _ThirdRouteState extends State<Teleop> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-              const Text('Score #2   '),
+                  Container(
+                    width: 150,
+                    child: Text('Speaker Scores'),
+                  ),
               ElevatedButton (
                 onPressed: () {
                   setState((){
-                    _score2--;
+                    _speakerScore--;
                   });
-                  _output3 ='$_score1 $_score2 $_score3 $_pickupMethod $_tapLocations $_image';
                 },
                 child: const Icon(Icons.remove),
               ),
-              Text('   $_score2   '),
+              Text('   $_speakerScore   '),
               ElevatedButton (
                 onPressed: () {
                   setState((){
-                    _score2++;
+                    _speakerScore++;
                   });
-                  _output3 ='$_score1 $_score2 $_score3 $_pickupMethod $_tapLocations $_image';
                 },
                 child: const Icon(Icons.add),
               ),
@@ -111,23 +112,24 @@ class _ThirdRouteState extends State<Teleop> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-              const Text('Score #3   '),
+                  Container(
+                    width: 150,
+                    child: Text('Amped Speaker'),
+                  ),
               ElevatedButton (
                 onPressed: () {
                   setState((){
-                    _score3--;
+                    _ampedSpeaker--;
                   });
-                  _output3 ='$_score1 $_score2 $_score3 $_pickupMethod $_tapLocations $_image';
                 },
                 child: const Icon(Icons.remove),
               ),
-              Text('   $_score3   '),
+              Text('   $_ampedSpeaker   '),
               ElevatedButton (
                 onPressed: () {
                   setState((){
-                    _score3++;
+                    _ampedSpeaker++;
                   });
-                  _output3 ='$_score1 $_score2 $_score3 $_pickupMethod $_tapLocations $_image';
                 },
                 child: const Icon(Icons.add),
               ),
@@ -142,15 +144,14 @@ class _ThirdRouteState extends State<Teleop> {
                 DropdownButton(
                   value: _pickupMethod,
                   items: const [
-                    DropdownMenuItem(value: 'A', child: Text('Method A')),
-                    DropdownMenuItem(value: 'B', child: Text('Method B')),
+                    DropdownMenuItem(value: 'A', child: Text('Floor')),
+                    DropdownMenuItem(value: 'B', child: Text('Source')),
                     DropdownMenuItem(value: 'AB', child: Text('Both')),
                     DropdownMenuItem(value: 'NA', child: Text('NA')),
                   ],
                   onChanged: (value) {
                     setState(() {
                       _pickupMethod = value as String;
-                     _output3 ='$_score1 $_score2 $_score3 $_pickupMethod $_tapLocations $_image';
                     });
                   },
                 )
@@ -177,7 +178,6 @@ class _ThirdRouteState extends State<Teleop> {
                       }else {
                         _undoStack.add([details.localPosition]);
                       }
-                      _output3 ='$_score1 $_score2 $_score3 $_pickupMethod $_tapLocations $_image';
                     });
                     },
                     child: Stack(
@@ -217,17 +217,16 @@ class _ThirdRouteState extends State<Teleop> {
                     setState(() {
                       if (_rotation == 0){
                         _rotation = pi;
-                        _image = 'Rotated';
+                        _image = 'True';
                       } else {
                         _rotation = 0;
-                        _image = 'Default';
+                        _image = 'False';
                       }
                       _tapLocations = _tapLocations.map((location){
                         return Offset((345-location.dx).toDouble(),(171-location.dy).toDouble());
                       }).toList();
                       _undoStack.add(_tapLocations.toList());
                     });
-                    _output3 ='$_score1 $_score2 $_score3 $_pickupMethod $_tapLocations $_image';
                   },
                   child: const Icon(Icons.rotate_right),
                 ),
@@ -253,6 +252,7 @@ class _ThirdRouteState extends State<Teleop> {
                     padding: const EdgeInsets.all(12),
                   ),
                   onPressed: () {
+                    _output3 ='$_ampScore\t$_speakerScore\t$_ampedSpeaker\t$_pickupMethod\t$_tapLocations\t$_image';
                     Navigator.push(
                       context,
                       MaterialPageRoute(
@@ -264,7 +264,7 @@ class _ThirdRouteState extends State<Teleop> {
                     );
                   },
                   child: const Text('        Next        '),
-                )
+                ) 
               ],
             )
             ],

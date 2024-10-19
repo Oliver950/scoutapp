@@ -12,11 +12,11 @@ class Autonomous extends StatefulWidget{
   }
 
   class _SecondRouteState extends State<Autonomous>{
-    int _score1 = 0;
-    int _score2 =0;
+    int _ampScore = 0;
+    int _speakerScore =0;
     String _output2 = '';
     double _rotation = 0;
-    String _image = '';
+    String _image = 'False';
     List _tapLocations = [];
     final List _undoStack = [];
 
@@ -25,7 +25,6 @@ class Autonomous extends StatefulWidget{
         setState(() {
           _undoStack.removeLast();
           _tapLocations = _undoStack.last.toList();
-          _output2 ='$_score1 $_score2 $_tapLocations $_image';
         });
       }
     }
@@ -57,23 +56,24 @@ class Autonomous extends StatefulWidget{
           children: [
             Row(mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Text('Score #1   '),
+              Container(
+                width: 100,
+                child: Text('Amp Scores'),
+              ),
               ElevatedButton (
                 onPressed: () {
                   setState((){
-                    _score1--;
+                    _ampScore--;
                   });
-                  _output2 ='$_score1 $_score2 $_tapLocations $_image';
                 },
                 child: const Icon(Icons.remove),
               ),
-              Text('   $_score1   '),
+              Text('   $_ampScore   '),
               ElevatedButton (
                 onPressed: () {
                   setState((){
-                    _score1++;
+                    _ampScore++;
                   });
-                  _output2 ='$_score1 $_score2 $_tapLocations $_image';
                 },
                 child: const Icon(Icons.add),
               ),
@@ -82,23 +82,25 @@ class Autonomous extends StatefulWidget{
             const SizedBox(height: 12,),
             Row(mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Text('Score #2   '),
+              Container(
+                width: 100,
+                child: Text('Speaker Score')
+              ),
+              const Text(''),
               ElevatedButton (
                 onPressed: () {
                   setState((){
-                    _score2--;
+                    _speakerScore--;
                   });
-                  _output2 ='$_score1 $_score2 $_tapLocations $_image';
                 },
                 child: const Icon(Icons.remove),
               ),
-              Text('   $_score2   '),
+              Text('   $_speakerScore   '),
               ElevatedButton (
                 onPressed: () {
                   setState((){
-                    _score2++;
+                    _speakerScore++;
                   });
-                  _output2 ='$_score1 $_score2 $_tapLocations $_image';
                 },
                 child: const Icon(Icons.add),
               ),
@@ -125,7 +127,6 @@ class Autonomous extends StatefulWidget{
                       }else {
                         _undoStack.add([details.localPosition]);
                       }
-                      _output2 ='$_score1 $_score2 $_tapLocations $_image';
                     });
                     },
                     child: Stack(
@@ -165,17 +166,16 @@ class Autonomous extends StatefulWidget{
                     setState(() {
                       if (_rotation == 0){
                         _rotation = pi;
-                        _image = 'Rotated';
+                        _image = 'True';
                       } else {
                         _rotation = 0;
-                        _image = 'Default';
+                        _image = 'False';
                       }
                       _tapLocations = _tapLocations.map((location){
                         return Offset((345-location.dx).toDouble(),(171-location.dy).toDouble());
                       }).toList();
                       _undoStack.add(_tapLocations.toList());
                     });
-                    _output2 ='$_score1 $_score2 $_tapLocations $_image';
                   },
                   child: const Icon(Icons.rotate_right),
                 ),
@@ -201,7 +201,9 @@ class Autonomous extends StatefulWidget{
                     padding: const EdgeInsets.all(12),
                   ),
                   onPressed: () {
+                    _output2 ='$_ampScore\t$_speakerScore\t$_tapLocations\t$_image';
                     Navigator.push(
+                      
                       context,
                       MaterialPageRoute(
                         builder: (context) => Teleop( 

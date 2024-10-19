@@ -6,7 +6,7 @@ class MatchDisplay extends StatefulWidget {
   final String finaloutput;
   static List<String> outputs = [];
 
-  const MatchDisplay({Key? key, this.finaloutput = ''}) : super(key: key);
+  const MatchDisplay({super.key, this.finaloutput = ''});
 
   @override
   _MatchDisplayState createState() => _MatchDisplayState();
@@ -75,8 +75,8 @@ class _MatchDisplayState extends State<MatchDisplay> {
                     child: const Text('Delete'),
                     ),
                     ElevatedButton(
-                      child: const Text ('Generate Qr code'),
-                      onPressed: _generateQrCode
+                      onPressed: _generateQrCode,
+                      child: const Text ('Generate Qr code')
                     )
                 ],
               ),
@@ -102,7 +102,7 @@ class _MatchDisplayState extends State<MatchDisplay> {
                                 final output = MatchDisplay.outputs[index];
                                 final isSelected = selectedOutputs.contains(output);
                                 return ListTile(
-                                  title: Text(output, style: TextStyle(fontSize: 12)),
+                                  title: Text(output, style: const TextStyle(fontSize: 12)),
                                   tileColor: isSelected ? Colors.blue : null,
                                   onTap: () => _onOutputTapped(output),
                                 );

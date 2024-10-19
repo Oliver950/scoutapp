@@ -19,7 +19,7 @@ class MatchOutput extends StatelessWidget {
 
   @override
   Widget build(BuildContext context){
-    String _FinalOutput = '$output1 $output2 $output3 $output4';
+    String FinalOutput = '$output1 $output2 $output3 $output4';
     return Theme(
       data: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue)
@@ -67,7 +67,7 @@ class MatchOutput extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text('Final Output: $_FinalOutput')
+                  Text('Final Output: $FinalOutput')
                 ],
               ),
               const SizedBox(height: 12,),
@@ -86,7 +86,7 @@ class MatchOutput extends StatelessWidget {
                         context,
                         MaterialPageRoute(
                           builder: (context) => MatchDisplay (
-                            finaloutput: _FinalOutput
+                            finaloutput: FinalOutput
                           )));
                     },
                     child: const Text('Save Output'),

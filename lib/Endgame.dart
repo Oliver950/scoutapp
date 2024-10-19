@@ -21,8 +21,8 @@ class _FourthRouteState extends State<Endgame> {
   final Stopwatch _stopwatch = Stopwatch();
   bool _isRunning = false;
   String _elapsedTime = '00.00';
-  String _finalLocation = ' C';
-  String _objective = ' NA';
+  String _finalLocation = 'S';
+  String _climbStatus = 'NA';
 
   @override
   void initState() {
@@ -42,7 +42,6 @@ class _FourthRouteState extends State<Endgame> {
 
     String _formatDuration(Duration duration) {  
    int seconds = duration.inSeconds;  
-   _output4 ='$_elapsedTime $_finalLocation $_objective';
    int milliseconds = duration.inMilliseconds.remainder(1000) ~/10;  
    return '${seconds.toString().padLeft(2, '0')}.${milliseconds.toString().padLeft(2, '0')}';  
   }  
@@ -93,7 +92,6 @@ class _FourthRouteState extends State<Endgame> {
                       setState(() {
                         _stopwatch.reset();
                         _elapsedTime = '00.00';
-                        _output4 ='$_elapsedTime $_finalLocation $_objective';
                       });
                     },
                   )
@@ -108,14 +106,13 @@ class _FourthRouteState extends State<Endgame> {
                   DropdownButton(
                     value: _finalLocation,
                     items: const [
-                      DropdownMenuItem(value: ' A',child: Text('Position A'),),
-                      DropdownMenuItem(value: ' B',child: Text('Position B'),),
-                      DropdownMenuItem(value: ' C',child: Text('Position C'),),
+                      DropdownMenuItem(value: 'P',child: Text('Parked'),),
+                      DropdownMenuItem(value: 'S',child: Text('Onstage'),),
+                      DropdownMenuItem(value: 'F',child: Text('Field'),),
                     ],
                     onChanged: (value){
                       setState(() {
                         _finalLocation = value as String;
-                        _output4 ='$_elapsedTime $_finalLocation $_objective';
                       });
                     },
                   )
@@ -128,17 +125,15 @@ class _FourthRouteState extends State<Endgame> {
                   const Text('Final Location'),
                   const SizedBox(width: 6,),
                   DropdownButton(
-                    value: _objective,
+                    value: _climbStatus,
                     items: const [
-                      DropdownMenuItem(value: ' A',child: Text('Objective A'),),
-                      DropdownMenuItem(value: ' B',child: Text('Objective B'),),
-                      DropdownMenuItem(value: ' C',child: Text('Objective C'),),
-                      DropdownMenuItem(value: ' NA',child: Text('NA'),),
+                      DropdownMenuItem(value: 'S',child: Text('Side'),),
+                      DropdownMenuItem(value: 'C',child: Text('Center'),),
+                      DropdownMenuItem(value: 'NA',child: Text('NA'),),
                     ],
                     onChanged: (value){
                       setState(() {
-                        _objective = value as String;
-                        _output4 ='$_elapsedTime $_finalLocation $_objective';
+                        _climbStatus = value as String;
                       });
                     },
                   )
@@ -159,6 +154,7 @@ class _FourthRouteState extends State<Endgame> {
                     padding: const EdgeInsets.all(12),
                   ),
                   onPressed: () {
+                    _output4 ='$_elapsedTime\t$_finalLocation\t$_climbStatus';
                     Navigator.push(
                       context,
                       MaterialPageRoute(

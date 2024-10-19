@@ -71,6 +71,7 @@ Widget build(BuildContext context) {
                   },
                   child: const Text('        Scouting        '),
                 ),
+                const SizedBox(width:10),
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(
                     textStyle: const TextStyle(fontSize:16),
@@ -83,7 +84,7 @@ Widget build(BuildContext context) {
                         builder: (context) => const MatchDisplay()),
                     );
                   },
-                  child: const Text('        Matches        '),
+                  child: const Text('      Match Viewer      '),
                 )
                   ],
                 )
