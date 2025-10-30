@@ -19,7 +19,7 @@ class MatchOutput extends StatelessWidget {
 
   @override
   Widget build(BuildContext context){
-    String FinalOutput = '$output1 $output2 $output3 $output4';
+    String FinalOutput = '$output1\t$output2\t$output3\t$output4';
     return Theme(
       data: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue)

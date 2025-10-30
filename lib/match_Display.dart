@@ -20,12 +20,19 @@ class _MatchDisplayState extends State<MatchDisplay> {
   @override
   void initState() {
     super.initState();
-    _loadOutputs();
-    if (widget.finaloutput.isNotEmpty){
-      MatchDisplay.outputs.add(widget.finaloutput);
-      _saveOutputs();
+    _initializeOutputs();
+  }
+
+  Future<void> _initializeOutputs() async {
+    await _loadOutputs();
+    if (widget.finaloutput.isNotEmpty) {
+      setState(() {
+        MatchDisplay.outputs.add(widget.finaloutput);
+      });
+      await _saveOutputs();
     }
   }
+
 
   void _onOutputTapped(String output) {
     setState(() {
@@ -47,7 +54,7 @@ class _MatchDisplayState extends State<MatchDisplay> {
 
   void _generateQrCode(){
       setState(() {
-        qrData = selectedOutputs.join(',');
+        qrData = selectedOutputs.join('\n');
       });
   }
 

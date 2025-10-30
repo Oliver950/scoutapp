@@ -69,7 +69,7 @@ Widget build(BuildContext context) {
                         builder: (context) => const Pregame()),
                     );
                   },
-                  child: const Text('        Scouting        '),
+                  child: const Text('Scout a game'),
                 ),
                 const SizedBox(width:10),
                 ElevatedButton(
@@ -84,7 +84,7 @@ Widget build(BuildContext context) {
                         builder: (context) => const MatchDisplay()),
                     );
                   },
-                  child: const Text('      Match Viewer      '),
+                  child: const Text('View Past Matches'),
                 )
                   ],
                 )

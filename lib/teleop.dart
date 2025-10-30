@@ -1,4 +1,3 @@
-import 'dart:math';
 import 'package:flutter/material.dart';
 import 'endgame.dart';
 
@@ -17,23 +16,13 @@ class Teleop extends StatefulWidget {
   
 class _ThirdRouteState extends State<Teleop> {  
   String _output3 = '';
-  int _ampScore = 0;
-  int _speakerScore = 0;
-  int _ampedSpeaker = 0;
-  double _rotation = 0;
-  String _pickupMethod = 'NA';
-  List _tapLocations = [];
-  final List _undoStack = [];
-  String _image = 'False';
-
-    void _undo() {
-      if (_undoStack.length >1){
-        setState(() {
-          _undoStack.removeLast();
-          _tapLocations = _undoStack.last.toList();
-        });
-      }
-    }
+  int _l1 = 0;
+  int _l2 = 0;
+  int _l3 = 0;
+  int _l4 = 0;
+  int _processor = 0;
+  int _net = 0;
+  int _missed = 0;
 
   @override  
   Widget build(BuildContext context) {  
@@ -55,189 +44,241 @@ class _ThirdRouteState extends State<Teleop> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Container(
-                    width: 150,
-                    child: Text('Amp Scores'),
-                  ),
-              ElevatedButton (
-                onPressed: () {
-                  setState((){
-                    _ampScore--;
-                  });
-                },
-                child: const Icon(Icons.remove),
-              ),
-              Text('   $_ampScore   '),
-              ElevatedButton (
-                onPressed: () {
-                  setState((){
-                    _ampScore++;
-                  });
-                },
-                child: const Icon(Icons.add),
-              ),
-                ],
-              ),
-              const SizedBox(height: 12,),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Container(
-                    width: 150,
-                    child: Text('Speaker Scores'),
-                  ),
-              ElevatedButton (
-                onPressed: () {
-                  setState((){
-                    _speakerScore--;
-                  });
-                },
-                child: const Icon(Icons.remove),
-              ),
-              Text('   $_speakerScore   '),
-              ElevatedButton (
-                onPressed: () {
-                  setState((){
-                    _speakerScore++;
-                  });
-                },
-                child: const Icon(Icons.add),
-              ),
-                ],
-              ),
-              const SizedBox(height: 12,),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Container(
-                    width: 150,
-                    child: Text('Amped Speaker'),
-                  ),
-              ElevatedButton (
-                onPressed: () {
-                  setState((){
-                    _ampedSpeaker--;
-                  });
-                },
-                child: const Icon(Icons.remove),
-              ),
-              Text('   $_ampedSpeaker   '),
-              ElevatedButton (
-                onPressed: () {
-                  setState((){
-                    _ampedSpeaker++;
-                  });
-                },
-                child: const Icon(Icons.add),
-              ),
-                ],
-              ),
-              const SizedBox(height: 12,),
-              Row(
+              const Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Text('Pickup Method'),
-                const SizedBox(width: 6,),
-                DropdownButton(
-                  value: _pickupMethod,
-                  items: const [
-                    DropdownMenuItem(value: 'A', child: Text('Floor')),
-                    DropdownMenuItem(value: 'B', child: Text('Source')),
-                    DropdownMenuItem(value: 'AB', child: Text('Both')),
-                    DropdownMenuItem(value: 'NA', child: Text('NA')),
-                  ],
-                  onChanged: (value) {
-                    setState(() {
-                      _pickupMethod = value as String;
-                    });
-                  },
-                )
+                Text('Coral')
               ],
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                width: 100,
+                child: const Text('L4'),
+              ),
+              ElevatedButton (
+                onPressed: () {
+                  setState((){
+                    _l4--;
+                    if(_l4<0){_l4=0;}
+                  });
+                },
+                child: const Icon(Icons.remove),
+              ),
+              Text('   $_l4   '),
+              ElevatedButton (
+                onPressed: () {
+                  setState((){
+                    _l4++;
+                  });
+                },
+                child: const Icon(Icons.add),
+              ),
+             ]
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                width: 100,
+                child: const Text('L3'),
+              ),
+              ElevatedButton (
+                onPressed: () {
+                  setState((){
+                    _l3--;
+                  });
+                },
+                child: const Icon(Icons.remove),
+              ),
+              Text('   $_l3   '),
+              ElevatedButton (
+                onPressed: () {
+                  setState((){
+                    _l3++;
+                    if(_l3<0){_l3=0;}
+                  });
+                },
+                child: const Icon(Icons.add),
+              ),
+             ]
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                width: 100,
+                child: const Text('L2'),
+              ),
+              ElevatedButton (
+                onPressed: () {
+                  setState((){
+                    _l2--;
+                    if(_l2<0){_l2=0;}
+                  });
+                },
+                child: const Icon(Icons.remove),
+              ),
+              Text('   $_l2   '),
+              ElevatedButton (
+                onPressed: () {
+                  setState((){
+                    _l2++;
+                  });
+                },
+                child: const Icon(Icons.add),
+              ),
+             ]
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                width: 100,
+                child: const Text('L1'),
+              ),
+              ElevatedButton (
+                onPressed: () {
+                  setState((){
+                    _l1--;
+                    if(_l1<0){_l1=0;}
+                  });
+                },
+                child: const Icon(Icons.remove),
+              ),
+              Text('   $_l1   '),
+              ElevatedButton (
+                onPressed: () {
+                  setState((){
+                    _l1++;
+                  });
+                },
+                child: const Icon(Icons.add),
+              ),
+             ]
             ),
             const SizedBox(height: 12,),
             const Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Text('Location Shot From')
+                Text('Algae')
               ],
             ),
-            const SizedBox(height: 12,),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                width: 100,
+                child: const Text('Processor'),
+              ),
+              ElevatedButton (
+                onPressed: () {
+                  setState((){
+                    _processor--;
+                    if(_processor<0){_processor=0;}
+                  });
+                },
+                child: const Icon(Icons.remove),
+              ),
+              Text('   $_processor   '),
+              ElevatedButton (
+                onPressed: () {
+                  setState((){
+                    _processor++;
+                  });
+                },
+                child: const Icon(Icons.add),
+              ),
+             ]
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                width: 100,
+                child: const Text('Net'),
+              ),
+              ElevatedButton (
+                onPressed: () {
+                  setState((){
+                    _net--;
+                  });
+                },
+                child: const Icon(Icons.remove),
+              ),
+              Text('   $_net   '),
+              ElevatedButton (
+                onPressed: () {
+                  setState((){
+                    _net++;
+                    if(_net<0){_net=0;}
+                  });
+                },
+                child: const Icon(Icons.add),
+              ),
+             ]
+            ),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                GestureDetector(
-                  behavior: HitTestBehavior.translucent,
-                  onTapDown: (TapDownDetails details) {
-                    setState(() {
-                      _tapLocations.add(details.localPosition);
-                      if (_undoStack.isNotEmpty) {
-                        _undoStack.add(_tapLocations.toList());
-                      }else {
-                        _undoStack.add([details.localPosition]);
-                      }
-                    });
-                    },
-                    child: Stack(
-                      children: [
-                         Transform.rotate(
-                  angle: _rotation,
-                  child: Image.asset('assets/Field2024.png',
-                  width: 345,
-                  height: 171,
+                Container(
+                  width: 300,
+                  child: const Text('Note: This is for algae scored by the ROBOT',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontStyle: FontStyle.italic,
+                    ),
                   ),
                 ),
-                ..._tapLocations.map((location){
-                  return Positioned(
-                    left: location.dx - 5,
-                    top: location.dy - 5,
-                    child: Container(
-                      width: 10,
-                      height: 10,
-                      decoration: const BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: Colors.red,
-                      ),
-                    ),
-                  );
-                })
-                      ],
-                    ),
-                ),
-              ],
+              ]
             ),
             const SizedBox(height: 12,),
+            const Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text('Missed/Dropped Cycles')
+              ],
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              ElevatedButton (
+                onPressed: () {
+                  setState((){
+                    _missed--;
+                    if(_missed<0){_missed=0;}
+                  });
+                },
+                child: const Icon(Icons.remove),
+              ),
+              Text('   $_missed   '),
+              ElevatedButton (
+                onPressed: () {
+                  setState((){
+                    _missed++;
+                  });
+                },
+                child: const Icon(Icons.add),
+              ),
+             ]
+            ),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                ElevatedButton(
-                  onPressed: (){
-                    setState(() {
-                      if (_rotation == 0){
-                        _rotation = pi;
-                        _image = 'True';
-                      } else {
-                        _rotation = 0;
-                        _image = 'False';
-                      }
-                      _tapLocations = _tapLocations.map((location){
-                        return Offset((345-location.dx).toDouble(),(171-location.dy).toDouble());
-                      }).toList();
-                      _undoStack.add(_tapLocations.toList());
-                    });
-                  },
-                  child: const Icon(Icons.rotate_right),
+                Container(
+                  width: 300,
+                  child: const Text('Note: This is when a game piece is dropped because of the robot. NOT human player',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontStyle: FontStyle.italic
+                    ),
+                  ),
                 ),
-                const SizedBox(width: 8,),
-                ElevatedButton(
-                  onPressed: _undo,
-                  child: const Icon(Icons.undo),
-                )
-              ],
+              ]
             ),
-            const SizedBox(height: 12,),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [ElevatedButton(
@@ -252,7 +293,7 @@ class _ThirdRouteState extends State<Teleop> {
                     padding: const EdgeInsets.all(12),
                   ),
                   onPressed: () {
-                    _output3 ='$_ampScore\t$_speakerScore\t$_ampedSpeaker\t$_pickupMethod\t$_tapLocations\t$_image';
+                    _output3 ='$_l1\t$_l2\t$_l3\t$_l4\t$_processor\t$_net';
                     Navigator.push(
                       context,
                       MaterialPageRoute(

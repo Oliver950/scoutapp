@@ -18,35 +18,12 @@ class Endgame extends StatefulWidget {
   
 class _FourthRouteState extends State<Endgame> {  
   String _output4 = '';
-  final Stopwatch _stopwatch = Stopwatch();
-  bool _isRunning = false;
-  String _elapsedTime = '00.00';
-  String _finalLocation = 'S';
-  String _climbStatus = 'NA';
+  String _finalLocation = 'NA';
+  bool _isDefence = false;
+  bool _isAOR = false;
+  bool _isImmobile = false;
 
   @override
-  void initState() {
-    super.initState();
-    _startTimer();
-  }
-
-  void _startTimer(){
-    Stream.periodic(const Duration(milliseconds: 100), (i){
-      if (_isRunning) {
-        setState(() {
-          _elapsedTime = _formatDuration(_stopwatch.elapsed);
-        });
-      }
-    }).listen((_){});
-  }
-
-    String _formatDuration(Duration duration) {  
-   int seconds = duration.inSeconds;  
-   int milliseconds = duration.inMilliseconds.remainder(1000) ~/10;  
-   return '${seconds.toString().padLeft(2, '0')}.${milliseconds.toString().padLeft(2, '0')}';  
-  }  
-
-     @override  
   Widget build(BuildContext context) {  
     return Theme (
       data: ThemeData(
@@ -66,37 +43,6 @@ class _FourthRouteState extends State<Endgame> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Text('Endgame Objective Timer'),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  
-                  ElevatedButton(
-                    child: Text(_isRunning? 'Stop': 'Start'),
-                    onPressed: (){
-                      setState(() {
-                        if (_isRunning) {
-                          _stopwatch.stop();
-                        }else{
-                          _stopwatch.start();
-                          
-                        }
-                        _isRunning=!_isRunning;
-                      });
-                    },
-                  ),
-                  Text('   Elapsed time: $_elapsedTime   '),
-                  ElevatedButton(
-                    child: const Text('Reset'),
-                    onPressed: (){
-                      setState(() {
-                        _stopwatch.reset();
-                        _elapsedTime = '00.00';
-                      });
-                    },
-                  )
-                ],
-              ),
               const SizedBox(height: 12,),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -107,8 +53,9 @@ class _FourthRouteState extends State<Endgame> {
                     value: _finalLocation,
                     items: const [
                       DropdownMenuItem(value: 'P',child: Text('Parked'),),
-                      DropdownMenuItem(value: 'S',child: Text('Onstage'),),
-                      DropdownMenuItem(value: 'F',child: Text('Field'),),
+                      DropdownMenuItem(value: 'D',child: Text('Deep climb'),),
+                      DropdownMenuItem(value: 'S',child: Text('Shallow climb'),),
+                      DropdownMenuItem(value: 'NA',child: Text('NA'),),
                     ],
                     onChanged: (value){
                       setState(() {
@@ -118,28 +65,76 @@ class _FourthRouteState extends State<Endgame> {
                   )
                 ],
               ),
-              const SizedBox(height: 12,),
               Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Text('Final Location'),
-                  const SizedBox(width: 6,),
-                  DropdownButton(
-                    value: _climbStatus,
-                    items: const [
-                      DropdownMenuItem(value: 'S',child: Text('Side'),),
-                      DropdownMenuItem(value: 'C',child: Text('Center'),),
-                      DropdownMenuItem(value: 'NA',child: Text('NA'),),
-                    ],
-                    onChanged: (value){
-                      setState(() {
-                        _climbStatus = value as String;
-                      });
-                    },
-                  )
-                ],
-              ),
-              const SizedBox(height: 12,),
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  width: 300,
+                  child: const Text('Note: DEEP climb is the LOWER cage, SHALLOW climb is the UPPER cage',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontStyle: FontStyle.italic
+                    ),
+                  ),
+                ),
+              ]
+            ),
+            SizedBox(height: 12),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  width: 125,
+                  child: const Text('Played Defence'),
+                ),
+                Checkbox(
+                  value: _isDefence,
+                  onChanged: (bool? value) {
+                    setState(() {
+                      _isDefence = value ?? false;
+                    });
+                  }
+                )
+              ],
+            ),
+            SizedBox(height: 12),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  width: 125,
+                  child: const Text('Can take Algae from the Reef'),
+                ),
+                Checkbox(
+                  value: _isAOR,
+                  onChanged: (bool? value) {
+                    setState(() {
+                      _isAOR = value ?? false;
+                    });
+                  }
+                )
+              ],
+            ),
+            SizedBox(height: 12),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  width: 125,
+                  child: const Text('Dissabled/Immobile'),
+                ),
+                Checkbox(
+                  value: _isImmobile,
+                  onChanged: (bool? value) {
+                    setState(() {
+                      _isImmobile = value ?? false;
+                    });
+                  }
+                )
+              ],
+            ),
+            const SizedBox(height: 12,),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [ElevatedButton(
@@ -154,7 +149,7 @@ class _FourthRouteState extends State<Endgame> {
                     padding: const EdgeInsets.all(12),
                   ),
                   onPressed: () {
-                    _output4 ='$_elapsedTime\t$_finalLocation\t$_climbStatus';
+                    _output4 ='$_finalLocation\t$_isDefence\t$_isAOR\t$_isImmobile';
                     Navigator.push(
                       context,
                       MaterialPageRoute(

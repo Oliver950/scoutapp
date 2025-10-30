@@ -1,5 +1,3 @@
-import 'dart:math';
-import 'dart:core';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'autonomous.dart';
@@ -17,9 +15,6 @@ class _PregameAppState extends State {
   String _team = '';
   String _robot = 'R1';
   String _output = '';
-  Offset _startLocation = const Offset(-25, -25);
-  double _rotation = 0;
-  String _image = 'False';
 @override
 Widget build(BuildContext context) {
   return MaterialApp(
@@ -141,74 +136,6 @@ Widget build(BuildContext context) {
                 )
               ],
             ),
-            const SizedBox(height: 12,),
-            const Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text('Starting Location')
-              ],
-            ),
-            const SizedBox(height:12,),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                GestureDetector(
-                  onTapDown: (TapDownDetails details){
-                    if ((details.localPosition.dx >=0 && details.localPosition.dx <=40)||
-                    (details.localPosition.dx >=305 && details.localPosition.dx <=345)){
-                    setState(() {
-                      _startLocation = details.localPosition;
-                    });
-                    }
-                  },
-                  child:Stack(
-                    children: [
-                      Transform.rotate(
-                        angle: _rotation,
-                        child: Image.asset(
-                          'assets/Field2024.png',
-                          width: 345,
-                          height: 171,
-                          ),
-                      ),
-                      Positioned(
-                        left: _startLocation.dx - 5,
-                        top: _startLocation.dy - 5,
-                        child: Container(
-                          width: 10,
-                          height:10,
-                          decoration: const BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: Colors.red,
-                          ),
-                        )
-                      ),
-                    ],
-                  )
-                )
-              ],
-            ),
-            const SizedBox(height: 12,),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                ElevatedButton(
-                  onPressed: (){
-                    setState(() {
-                      if (_rotation == 0){
-                        _rotation = pi;
-                        _image = 'True';
-                      } else {
-                        _rotation = 0;
-                        _image = 'False';
-                      }
-                    });
-                     _startLocation = Offset (345 - _startLocation.dx, 171 - _startLocation.dy);
-                  },
-                  child: const Icon(Icons.rotate_right),
-                  )
-              ]
-            ),
             const SizedBox(height:60,),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -223,7 +150,7 @@ Widget build(BuildContext context) {
                     padding: const EdgeInsets.all(12),
                   ),
                   onPressed: () {
-                    _output ='$_scouterName\t$_match\t$_team \t$_robot\t$_startLocation\t$_image';
+                    _output ='$_scouterName\t$_match\t$_team\t$_robot';
                     Navigator.push(
                       context,
                       MaterialPageRoute(
