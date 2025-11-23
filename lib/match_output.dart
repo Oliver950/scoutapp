@@ -87,7 +87,9 @@ class MatchOutput extends StatelessWidget {
                         MaterialPageRoute(
                           builder: (context) => MatchDisplay (
                             finaloutput: FinalOutput
-                          )));
+                          )
+                        )
+                      );
                     },
                     child: const Text('Save Output'),
                   )
@@ -97,7 +99,6 @@ class MatchOutput extends StatelessWidget {
           ),
         ),
       ),
-
     );
   }
 }
