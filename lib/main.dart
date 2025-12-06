@@ -81,7 +81,7 @@ Widget build(BuildContext context) {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => const MatchDisplay()),
+                        builder: (context) => const MatchDisplay(finaloutput: '')),
                     );
                   },
                   child: const Text('View Past Matches'),

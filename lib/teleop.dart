@@ -88,6 +88,7 @@ class _ThirdRouteState extends State<Teleop> {
                 onPressed: () {
                   setState((){
                     _l3--;
+                    if(_l3<0){_l3=0;}
                   });
                 },
                 child: const Icon(Icons.remove),
@@ -97,7 +98,6 @@ class _ThirdRouteState extends State<Teleop> {
                 onPressed: () {
                   setState((){
                     _l3++;
-                    if(_l3<0){_l3=0;}
                   });
                 },
                 child: const Icon(Icons.add),
@@ -203,6 +203,7 @@ class _ThirdRouteState extends State<Teleop> {
                 onPressed: () {
                   setState((){
                     _net--;
+                    if(_net<0){_net=0;}
                   });
                 },
                 child: const Icon(Icons.remove),
@@ -212,7 +213,6 @@ class _ThirdRouteState extends State<Teleop> {
                 onPressed: () {
                   setState((){
                     _net++;
-                    if(_net<0){_net=0;}
                   });
                 },
                 child: const Icon(Icons.add),

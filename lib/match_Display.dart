@@ -7,7 +7,7 @@ class MatchDisplay extends StatefulWidget {
   final String finaloutput;
   static List<String> outputs = [];
 
-  const MatchDisplay({super.key, this.finaloutput = ''});
+  const MatchDisplay({super.key, required this.finaloutput});
 
   @override
   _MatchDisplayState createState() => _MatchDisplayState();
@@ -25,11 +25,11 @@ class _MatchDisplayState extends State<MatchDisplay> {
 
   Future<void> _initializeOutputs() async {
     await _loadOutputs();
+
     if (widget.finaloutput.isNotEmpty) {
-      setState(() {
-        MatchDisplay.outputs.add(widget.finaloutput);
-      });
+      MatchDisplay.outputs.add(widget.finaloutput);
       await _saveOutputs();
+      setState(() {});
     }
   }
 

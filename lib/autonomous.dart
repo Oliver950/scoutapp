@@ -86,6 +86,7 @@ class Autonomous extends StatefulWidget{
                 onPressed: () {
                   setState((){
                     _l3--;
+                    if(_l3<0){_l3=0;}
                   });
                 },
                 child: const Icon(Icons.remove),
@@ -95,7 +96,6 @@ class Autonomous extends StatefulWidget{
                 onPressed: () {
                   setState((){
                     _l3++;
-                    if(_l3<0){_l3=0;}
                   });
                 },
                 child: const Icon(Icons.add),
@@ -201,6 +201,7 @@ class Autonomous extends StatefulWidget{
                 onPressed: () {
                   setState((){
                     _net--;
+                    if(_net<0){_net=0;}
                   });
                 },
                 child: const Icon(Icons.remove),
@@ -210,7 +211,6 @@ class Autonomous extends StatefulWidget{
                 onPressed: () {
                   setState((){
                     _net++;
-                    if(_net<0){_net=0;}
                   });
                 },
                 child: const Icon(Icons.add),
