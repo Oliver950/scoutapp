@@ -18,10 +18,7 @@ class Endgame extends StatefulWidget {
   
 class _FourthRouteState extends State<Endgame> {  
   String _output4 = '';
-  String _finalLocation = 'NA';
-  bool _isDefence = false;
-  bool _isAOR = false;
-  bool _isImmobile = false;
+  String _tower = 'NA';
 
   @override
   Widget build(BuildContext context) {  
@@ -50,90 +47,21 @@ class _FourthRouteState extends State<Endgame> {
                   const Text('Final Location'),
                   const SizedBox(width: 6,),
                   DropdownButton(
-                    value: _finalLocation,
+                    value: _tower,
                     items: const [
-                      DropdownMenuItem(value: 'P',child: Text('Parked'),),
-                      DropdownMenuItem(value: 'D',child: Text('Deep climb'),),
-                      DropdownMenuItem(value: 'S',child: Text('Shallow climb'),),
+                      DropdownMenuItem(value: '1',child: Text('Tower 1'),),
+                      DropdownMenuItem(value: '2',child: Text('Tower 2'),),
+                      DropdownMenuItem(value: '3',child: Text('Tower 3'),),
                       DropdownMenuItem(value: 'NA',child: Text('NA'),),
                     ],
                     onChanged: (value){
                       setState(() {
-                        _finalLocation = value as String;
+                        _tower = value as String;
                       });
                     },
                   )
                 ],
               ),
-              Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Container(
-                  width: 300,
-                  child: const Text('Note: DEEP climb is the LOWER cage, SHALLOW climb is the UPPER cage',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontStyle: FontStyle.italic
-                    ),
-                  ),
-                ),
-              ]
-            ),
-            SizedBox(height: 12),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Container(
-                  width: 125,
-                  child: const Text('Played Defence'),
-                ),
-                Checkbox(
-                  value: _isDefence,
-                  onChanged: (bool? value) {
-                    setState(() {
-                      _isDefence = value ?? false;
-                    });
-                  }
-                )
-              ],
-            ),
-            SizedBox(height: 12),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Container(
-                  width: 125,
-                  child: const Text('Can take Algae from the Reef'),
-                ),
-                Checkbox(
-                  value: _isAOR,
-                  onChanged: (bool? value) {
-                    setState(() {
-                      _isAOR = value ?? false;
-                    });
-                  }
-                )
-              ],
-            ),
-            SizedBox(height: 12),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Container(
-                  width: 125,
-                  child: const Text('Dissabled/Immobile'),
-                ),
-                Checkbox(
-                  value: _isImmobile,
-                  onChanged: (bool? value) {
-                    setState(() {
-                      _isImmobile = value ?? false;
-                    });
-                  }
-                )
-              ],
-            ),
             const SizedBox(height: 12,),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -149,7 +77,7 @@ class _FourthRouteState extends State<Endgame> {
                     padding: const EdgeInsets.all(12),
                   ),
                   onPressed: () {
-                    _output4 ='$_finalLocation\t$_isDefence\t$_isAOR\t$_isImmobile';
+                    _output4 ='$_tower';
                     Navigator.push(
                       context,
                       MaterialPageRoute(
