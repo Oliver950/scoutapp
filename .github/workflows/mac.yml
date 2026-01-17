@@ -1,4 +1,4 @@
-name: Build and distribute IPA
+name: Build and Distribute iOS IPA
 
 on:
   push:
@@ -7,15 +7,17 @@ on:
 
 jobs:
   build:
-    name: Build iOS IPA and Upload to TestFlight
+    name: Build IPA and Upload to TestFlight
     runs-on: macos-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-      - name: Xcode version
+      - name: Check Xcode version
         run: /usr/bin/xcodebuild -version
 
+      # 🐦 Install Flutter
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
@@ -33,41 +35,37 @@ jobs:
           security list-keychains -d user -s ios-build.keychain $(security list-keychains -d user | tr -d '"')
           security default-keychain -s ios-build.keychain
 
-      # 🔑 Install certificates and provisioning profiles
+      # 🔑 Install Development & Distribution Certificates and Provisioning Profiles
       - name: Install certificates and provisioning profiles
         run: |
           set -e
-
           mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
 
-          # Development Certificate
+          # Development certificate
           DEV_CERT=$RUNNER_TEMP/dev.p12
           echo "${{ secrets.IOS_DEV_CERTIFICATE_BASE64 }}" | base64 --decode > $DEV_CERT
           security import $DEV_CERT -k ios-build.keychain -P "${{ secrets.IOS_BUILD_CERTIFICATE_PASSWORD }}" -A -T /usr/bin/codesign
 
-          # Development Provisioning Profile
+          # Development provisioning profile
           DEV_PP=$RUNNER_TEMP/dev_profile.mobileprovision
           echo "${{ secrets.IOS_DEV_MOBILE_PROVISIONING_PROFILE_BASE64 }}" | base64 --decode > $DEV_PP
-          DEV_UUID=$(/usr/libexec/PlistBuddy -c "Print UUID" /dev/stdin <<< $(security cms -D -i $DEV_PP))
-          cp $DEV_PP ~/Library/MobileDevice/Provisioning\ Profiles/$DEV_UUID.mobileprovision
-          echo "Development profile UUID: $DEV_UUID"
+          cp $DEV_PP ~/Library/MobileDevice/Provisioning\ Profiles/
 
-          # Distribution Certificate
+          # Distribution certificate
           DIST_CERT=$RUNNER_TEMP/dist.p12
           echo "${{ secrets.IOS_BUILD_CERTIFICATE_BASE64 }}" | base64 --decode > $DIST_CERT
           security import $DIST_CERT -k ios-build.keychain -P "${{ secrets.IOS_BUILD_CERTIFICATE_PASSWORD }}" -A -T /usr/bin/codesign
 
-          # Distribution Provisioning Profile
+          # Distribution provisioning profile
           DIST_PP=$RUNNER_TEMP/dist_profile.mobileprovision
           echo "${{ secrets.IOS_MOBILE_PROVISIONING_PROFILE_BASE64 }}" | base64 --decode > $DIST_PP
-          DIST_UUID=$(/usr/libexec/PlistBuddy -c "Print UUID" /dev/stdin <<< $(security cms -D -i $DIST_PP))
-          cp $DIST_PP ~/Library/MobileDevice/Provisioning\ Profiles/$DIST_UUID.mobileprovision
-          echo "Distribution profile UUID: $DIST_UUID"
+          cp $DIST_PP ~/Library/MobileDevice/Provisioning\ Profiles/
 
+          echo "Installed signing identities:"
           security find-identity -v
 
-      # 🏗 Patch pbxproj for manual signing, bundle ID, and team
-      - name: Patch Xcode project for signing
+      # 🏗 Patch pbxproj for correct development team and bundle ID
+      - name: Patch Xcode project for CI
         run: |
           PBXPROJ="ios/Runner.xcodeproj/project.pbxproj"
           DEV_TEAM="AVGT6H69KV"
@@ -84,32 +82,29 @@ jobs:
 
           echo "pbxproj patched: Manual signing, development team, bundle ID applied"
 
-      # 📦 Build IPA without automatic codesign
+      # 📦 Flutter build without codesign
       - name: Flutter build IPA
-        run: |
-          flutter build ipa --release --export-options-plist=ios/GithubActionsExportOptions.plist --no-codesign
+        run: flutter build ipa --release --export-options-plist=ios/GithubActionsExportOptions.plist --no-codesign
 
-      # 🏗 Archive with xcodebuild manually
-      - name: Archive with xcodebuild
+      # 🏗 Archive and export IPA using xcodebuild + ExportOptions.plist
+      - name: Archive and export IPA
         run: |
           ARCHIVE_PATH=$PWD/build/ios/archive
-          IPA_PATH=$PWD/build/ios/ipa/Runner.ipa
-          mkdir -p $ARCHIVE_PATH $PWD/build/ios/ipa
+          IPA_OUTPUT_PATH=$PWD/build/ios/ipa
+          mkdir -p $ARCHIVE_PATH $IPA_OUTPUT_PATH
 
           xcodebuild archive \
             -workspace ios/Runner.xcworkspace \
             -scheme Runner \
             -configuration Release \
-            -archivePath $ARCHIVE_PATH/Runner.xcarchive \
-            DEVELOPMENT_TEAM=AVGT6H69KV \
-            CODE_SIGN_STYLE=Manual
+            -archivePath $ARCHIVE_PATH/Runner.xcarchive
 
           xcodebuild -exportArchive \
             -archivePath $ARCHIVE_PATH/Runner.xcarchive \
             -exportOptionsPlist ios/GithubActionsExportOptions.plist \
-            -exportPath $PWD/build/ios/ipa
+            -exportPath $IPA_OUTPUT_PATH
 
-      # 📦 Upload IPA as artifact
+      # 📦 Upload IPA artifact
       - name: Upload IPA artifact
         uses: actions/upload-artifact@v4
         with:
