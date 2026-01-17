@@ -19,6 +19,7 @@ class Endgame extends StatefulWidget {
 class _FourthRouteState extends State<Endgame> {  
   String _output4 = '';
   String _tower = 'NA';
+  String _position = 'NA';
 
   @override
   Widget build(BuildContext context) {  
@@ -52,6 +53,27 @@ class _FourthRouteState extends State<Endgame> {
                       DropdownMenuItem(value: '1',child: Text('Tower 1'),),
                       DropdownMenuItem(value: '2',child: Text('Tower 2'),),
                       DropdownMenuItem(value: '3',child: Text('Tower 3'),),
+                      DropdownMenuItem(value: 'NA',child: Text('NA'),),
+                    ],
+                    onChanged: (value){
+                      setState(() {
+                        _tower = value as String;
+                      });
+                    },
+                  )
+                ],
+              ),
+              const SizedBox(height: 12,),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Text('Climb position'),
+                  const SizedBox(width: 6,),
+                  DropdownButton(
+                    value: _tower,
+                    items: const [
+                      DropdownMenuItem(value: 'side',child: Text('Side'),),
+                      DropdownMenuItem(value: 'front',child: Text('Front'),),
                       DropdownMenuItem(value: 'NA',child: Text('NA'),),
                     ],
                     onChanged: (value){

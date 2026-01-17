@@ -1,4 +1,3 @@
-import 'dart:core';
 import 'package:flutter/material.dart';
 import 'package:scoutapp/pregame.dart';
 import 'match_Display.dart';
@@ -45,7 +44,7 @@ Widget build(BuildContext context) {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Text('2026 Oakbotics Scouting App',
+            const Text('Oakbotics Scouting App',
             style: TextStyle(
               fontSize: 24
             )),
@@ -81,7 +80,7 @@ Widget build(BuildContext context) {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => const MatchDisplay(finaloutput: '')),
+                        builder: (context) => const MatchDisplay(finaloutput: '',)),
                     );
                   },
                   child: const Text('View Past Matches'),

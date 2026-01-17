@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'teleop.dart';
+import 'dart:async';
 
 class Autonomous extends StatefulWidget{
   final String output1;
@@ -12,10 +13,13 @@ class Autonomous extends StatefulWidget{
 
   class _SecondRouteState extends State<Autonomous>{
     String _output2 = '';
+    final _shooting = Stopwatch();
     int _fuel = 0;
     bool _depot = false;
     bool _outpost = false;
     bool _tower = false;
+    Timer? _uiTimer;
+
 
   @override
   Widget build(BuildContext context) {
@@ -38,74 +42,34 @@ class Autonomous extends StatefulWidget{
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
+            Text('Time shooting'),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Container(
-                child: const Text('Fuel'),
+                ElevatedButton (
+                  onPressed: () {
+                    setState(() {
+                      _shooting.start();
+                      _uiTimer ??= Timer.periodic(
+                        const Duration(milliseconds: 100),
+                        (_) {
+                          setState(() {});
+                        }
+                      );
+                    });
+                  },
+                  child: Text('start'),
+                ),
+                Container(width: 25, child: Text(_shooting.elapsed.inSeconds.toString()), alignment: Alignment.center,),
+                ElevatedButton (
+                  onPressed: () {
+                    setState(() {
+                      _shooting.stop();
+                    });
+                  },
+                  child: Text('stop'),
                 )
               ],
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              ElevatedButton (
-                onPressed: () {
-                  setState((){
-                    _fuel=_fuel-5;
-                    if(_fuel<0){_fuel=0;}
-                  });
-                },
-                child: const Text('-5'),
-              ),
-              Container(width: 5,),
-              ElevatedButton (
-                onPressed: () {
-                  setState((){
-                    _fuel=_fuel-2;
-                    if(_fuel<0){_fuel=0;}
-                  });
-                },
-                child: const Text('-2'),
-              ),
-              Container(width: 5,),
-              ElevatedButton (
-                onPressed: () {
-                  setState((){
-                    _fuel--;
-                    if(_fuel<0){_fuel=0;}
-                  });
-                },
-                child: const Text('-1'),
-              ),
-              Text('   $_fuel   '),
-              ElevatedButton (
-                onPressed: () {
-                  setState((){
-                    _fuel++;
-                  });
-                },
-                child: const Text('+1'),
-              ),
-              Container(width: 5,),
-              ElevatedButton (
-                onPressed: () {
-                  setState((){
-                    _fuel=_fuel+2;
-                  });
-                },
-                child: const Text('+2'),
-              ),
-              Container(width: 5,),
-              ElevatedButton (
-                onPressed: () {
-                  setState((){
-                    _fuel=_fuel+5;
-                  });
-                },
-                child: const Text('+5'),
-              ),
-             ]
             ),
             SizedBox(height: 12),
             Row(
