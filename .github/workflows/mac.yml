@@ -11,24 +11,20 @@ jobs:
     runs-on: macos-latest
 
     steps:
-      # 1️⃣ Checkout code
       - uses: actions/checkout@v4
 
-      # 2️⃣ Check Xcode version
       - name: Xcode version
         run: /usr/bin/xcodebuild -version
 
-      # 3️⃣ Install Flutter
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
           cache: true
 
-      # 4️⃣ Flutter dependencies
       - name: Flutter pub get
         run: flutter pub get
 
-      # 5️⃣ Create and unlock keychain
+      # 🔐 Create and unlock keychain
       - name: Create keychain
         run: |
           security create-keychain -p "${{ secrets.IOS_GITHUB_KEYCHAIN_PASSWORD }}" ios-build.keychain
@@ -37,7 +33,7 @@ jobs:
           security list-keychains -d user -s ios-build.keychain $(security list-keychains -d user | tr -d '"')
           security default-keychain -s ios-build.keychain
 
-      # 6️⃣ Import Development Certificate
+      # 🔑 Import Development Certificate
       - name: Import Development Certificate
         run: |
           DEV_CERT_PATH=$RUNNER_TEMP/dev.p12
@@ -46,27 +42,19 @@ jobs:
             -k ios-build.keychain \
             -P "${{ secrets.IOS_BUILD_CERTIFICATE_PASSWORD }}" \
             -A -T /usr/bin/codesign
-          echo "Installed development identities:"
           security find-identity -v
 
-      # 7️⃣ Install Development provisioning profile
+      # 📄 Install Development provisioning profile
       - name: Install Dev provisioning profile
         run: |
           DEV_PP_PATH=$RUNNER_TEMP/dev_profile.mobileprovision
           echo "${{ secrets.IOS_DEV_MOBILE_PROVISIONING_PROFILE_BASE64 }}" | base64 --decode > $DEV_PP_PATH
-
           UUID=$(/usr/libexec/PlistBuddy -c "Print UUID" /dev/stdin <<< $(security cms -D -i $DEV_PP_PATH))
-          NAME=$(/usr/libexec/PlistBuddy -c "Print Name" /dev/stdin <<< $(security cms -D -i $DEV_PP_PATH))
-          APPID=$(/usr/libexec/PlistBuddy -c "Print Entitlements:application-identifier" /dev/stdin <<< $(security cms -D -i $DEV_PP_PATH))
-
-          echo "Dev UUID: $UUID"
-          echo "Dev Profile Name: $NAME"
-          echo "Dev App ID: $APPID"
-
+          echo "Development profile UUID: $UUID"
           mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
           cp $DEV_PP_PATH ~/Library/MobileDevice/Provisioning\ Profiles/$UUID.mobileprovision
 
-      # 8️⃣ Import Distribution Certificate
+      # 🔑 Import Distribution Certificate
       - name: Import Distribution Certificate
         run: |
           DIST_CERT_PATH=$RUNNER_TEMP/dist.p12
@@ -75,43 +63,48 @@ jobs:
             -k ios-build.keychain \
             -P "${{ secrets.IOS_BUILD_CERTIFICATE_PASSWORD }}" \
             -A -T /usr/bin/codesign
-          echo "Installed distribution identities:"
           security find-identity -v
 
-      # 9️⃣ Install App Store provisioning profile
+      # 📄 Install App Store provisioning profile
       - name: Install App Store provisioning profile
         run: |
           DIST_PP_PATH=$RUNNER_TEMP/dist_profile.mobileprovision
           echo "${{ secrets.IOS_MOBILE_PROVISIONING_PROFILE_BASE64 }}" | base64 --decode > $DIST_PP_PATH
-
           UUID=$(/usr/libexec/PlistBuddy -c "Print UUID" /dev/stdin <<< $(security cms -D -i $DIST_PP_PATH))
-          NAME=$(/usr/libexec/PlistBuddy -c "Print Name" /dev/stdin <<< $(security cms -D -i $DIST_PP_PATH))
-          APPID=$(/usr/libexec/PlistBuddy -c "Print Entitlements:application-identifier" /dev/stdin <<< $(security cms -D -i $DIST_PP_PATH))
-
-          echo "Dist UUID: $UUID"
-          echo "Dist Profile Name: $NAME"
-          echo "Dist App ID: $APPID"
-
+          echo "Distribution profile UUID: $UUID"
           mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
           cp $DIST_PP_PATH ~/Library/MobileDevice/Provisioning\ Profiles/$UUID.mobileprovision
 
-      # 🔟 Force correct bundle ID
-      - name: Set bundle identifier
+      # 🏗 Force development team, manual signing, and correct bundle ID in project.pbxproj
+      - name: Set development team, manual signing, and bundle ID
         run: |
-          /usr/libexec/PlistBuddy -c "Set :CFBundleIdentifier com.viper10554.scouting" ios/Runner/Info.plist
+          PBXPROJ="ios/Runner.xcodeproj/project.pbxproj"
+          DEV_TEAM="AVGT6H69KV"
+          BUNDLE_ID="com.viper10554.scouting"
 
-      # 1️⃣1️⃣ Build IPA
+          # Force Manual signing
+          perl -pi -e 's/CODE_SIGN_STYLE = Automatic;/CODE_SIGN_STYLE = Manual;/g' "$PBXPROJ"
+
+          # Insert DEVELOPMENT_TEAM if missing in all build configurations
+          perl -0777 -pi -e "s/(buildSettings = \{)/\$1\n\t\tDEVELOPMENT_TEAM = $DEV_TEAM;/" "$PBXPROJ"
+
+          # Replace PRODUCT_BUNDLE_IDENTIFIER with correct one
+          perl -pi -e "s/PRODUCT_BUNDLE_IDENTIFIER = [^;]+;/PRODUCT_BUNDLE_IDENTIFIER = $BUNDLE_ID;/g" "$PBXPROJ"
+
+          echo "Development team, manual signing, and bundle ID set in project.pbxproj"
+
+      # 📦 Build IPA
       - name: Build iOS IPA
         run: flutter build ipa --release --export-options-plist=ios/GithubActionsExportOptions.plist
 
-      # 1️⃣2️⃣ Upload IPA as artifact
+      # 📦 Upload IPA as artifact
       - name: Archive IPA
         uses: actions/upload-artifact@v4
         with:
           name: release-ipa
           path: build/ios/ipa/Runner.ipa
 
-      # 1️⃣3️⃣ Upload to TestFlight
+      # 🚀 Upload to TestFlight
       - name: Upload app to TestFlight
         uses: apple-actions/upload-testflight-build@v3
         with:
