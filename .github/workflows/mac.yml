@@ -11,7 +11,7 @@ jobs:
     runs-on: macos-latest
     defaults:
       run:
-        shell: /bin/bash
+        shell: bash
 
     steps:
       # 1️⃣ Checkout repo
