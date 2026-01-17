@@ -12,14 +12,43 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - uses: cedvdb/action-flutter-build-ios@v1
-        with:
-          # always use --export-options-plist=ios/GithubActionsExportOptions.plist
-          build-cmd: flutter build ipa --release --export-options-plist=ios/GithubActionsExportOptions.plist
-          certificate-base64: ${{ secrets.IOS_BUILD_CERTIFICATE_BASE64 }}
-          certificate-password: ${{ secrets.IOS_BUILD_CERTIFICATE_PASSWORD }}
-          provisioning-profile-base64: ${{ secrets.IOS_MOBILE_PROVISIONING_PROFILE_BASE64 }}
-          keychain-password: ${{ secrets.IOS_GITHUB_KEYCHAIN_PASSWORD }}
+      # 🔐 Setup keychain
+      - name: Create keychain
+        run: |
+          security create-keychain -p "${{ secrets.IOS_GITHUB_KEYCHAIN_PASSWORD }}" ios-build.keychain
+          security default-keychain -s ios-build.keychain
+          security unlock-keychain -p "${{ secrets.IOS_GITHUB_KEYCHAIN_PASSWORD }}" ios-build.keychain
+          security set-keychain-settings -t 3600 -l ios-build.keychain
+
+      # 🔑 Import Apple Distribution certificate
+      - name: Import Distribution Certificate
+        run: |
+          echo "${{ secrets.IOS_BUILD_CERTIFICATE_BASE64 }}" | base64 --decode > dist.p12
+          security import dist.p12 \
+            -k ios-build.keychain \
+            -P "${{ secrets.IOS_BUILD_CERTIFICATE_PASSWORD }}" \
+            -T /usr/bin/codesign
+
+      # 📄 Install provisioning profile
+      - name: Install provisioning profile
+        run: |
+          mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
+          echo "${{ secrets.IOS_MOBILE_PROVISIONING_PROFILE_BASE64 }}" | base64 --decode > profile.mobileprovision
+          cp profile.mobileprovision ~/Library/MobileDevice/Provisioning\ Profiles/
+
+      # 🛑 Force manual signing (no dev cert)
+      - name: Force manual signing
+        run: |
+          sed -i '' 's/CODE_SIGN_STYLE = Automatic;/CODE_SIGN_STYLE = Manual;/g' ios/Runner.xcodeproj/project.pbxproj
+          sed -i '' 's/DEVELOPMENT_TEAM = .*/DEVELOPMENT_TEAM = YOUR_TEAM_ID;/g' ios/Runner.xcodeproj/project.pbxproj
+          sed -i '' 's/ProvisioningStyle = Automatic;/ProvisioningStyle = Manual;/g' ios/Runner.xcodeproj/project.pbxproj
+
+      # 📦 Build IPA (Distribution)
+      - name: Build iOS IPA
+        run: |
+          flutter build ipa \
+            --release \
+            --export-options-plist=ios/GithubActionsExportOptions.plist
 
       - name: Archive IPA
         uses: actions/upload-artifact@v4
