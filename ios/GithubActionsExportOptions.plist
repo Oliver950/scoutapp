@@ -7,10 +7,10 @@
     <key>provisioningProfiles</key>
     <dict>
         <key>com.viper10554.scouting</key>
-        <string>Viper 10554</string>
+        <string>Viper_10554</string>
     </dict>
     <key>signingCertificate</key>
-    <string>iPhone Distribution</string>
+    <string>Apple Distribution</string>
     <key>signingStyle</key>
     <string>manual</string>
     <key>teamID</key>
