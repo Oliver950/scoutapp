@@ -15,29 +15,11 @@ jobs:
       - name: Xcode version
         run: /usr/bin/xcodebuild -version
 
-      # 🧪 Check if Flutter exists
-      - name: Check Flutter
-        id: check_flutter
-        shell: bash
-        run: |
-          if command -v flutter >/dev/null 2>&1; then
-            echo "installed=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "installed=false" >> "$GITHUB_OUTPUT"
-          fi
-
-      # 🐦 Install Flutter if missing
-      - name: Setup Flutter
-        if: steps.check_flutter.outputs.installed == 'false'
-        uses: subosito/flutter-action@v2
+      # 🐦 Setup Flutter
+      - uses: subosito/flutter-action@v2
         with:
           channel: stable
           cache: true
-
-      # 🔥 FlutterFire (same as old action)
-      - name: Activate FlutterFire
-        run: dart pub global activate flutterfire_cli
-        shell: bash
 
       - name: Flutter pub get
         run: flutter pub get
@@ -53,35 +35,48 @@ jobs:
       # 🔑 Import Apple Distribution certificate
       - name: Import Distribution Certificate
         run: |
-          echo "${{ secrets.IOS_BUILD_CERTIFICATE_BASE64 }}" | base64 --decode > dist.p12
-          security import dist.p12 \
+          CERT_PATH=$RUNNER_TEMP/dist.p12
+          echo "${{ secrets.IOS_BUILD_CERTIFICATE_BASE64 }}" | base64 --decode > $CERT_PATH
+          security import $CERT_PATH \
             -k ios-build.keychain \
             -P "${{ secrets.IOS_BUILD_CERTIFICATE_PASSWORD }}" \
             -A -T /usr/bin/codesign
+
+          echo "🔑 Installed code signing identities:"
           security find-identity -v
 
-      # 📄 Install provisioning profile (UUID-based like old action)
-      - name: Install provisioning profile
+      # 📄 Install provisioning profile + 🔍 print details
+      - name: Install & inspect provisioning profile
         run: |
           PP_PATH=$RUNNER_TEMP/profile.mobileprovision
           echo "${{ secrets.IOS_MOBILE_PROVISIONING_PROFILE_BASE64 }}" | base64 --decode > $PP_PATH
+
+          echo "📄 Provisioning profile details:"
+          security cms -D -i $PP_PATH | plutil -p -
+
           UUID=$(/usr/libexec/PlistBuddy -c "Print UUID" /dev/stdin <<< $(security cms -D -i $PP_PATH))
+          NAME=$(/usr/libexec/PlistBuddy -c "Print Name" /dev/stdin <<< $(security cms -D -i $PP_PATH))
+          APPID=$(/usr/libexec/PlistBuddy -c "Print Entitlements:application-identifier" /dev/stdin <<< $(security cms -D -i $PP_PATH))
+
+          echo "🆔 UUID: $UUID"
+          echo "🏷️ Name: $NAME"
+          echo "📦 App Identifier: $APPID"
+
           mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
           cp $PP_PATH ~/Library/MobileDevice/Provisioning\ Profiles/$UUID.mobileprovision
 
-      # 🛑 Force manual signing (distribution only)
-      - name: Force manual signing
-        run: |
-          sed -i '' 's/CODE_SIGN_STYLE = Automatic;/CODE_SIGN_STYLE = Manual;/g' ios/Runner.xcodeproj/project.pbxproj
-          sed -i '' 's/ProvisioningStyle = Automatic;/ProvisioningStyle = Manual;/g' ios/Runner.xcodeproj/project.pbxproj
-          sed -i '' 's/DEVELOPMENT_TEAM = .*/DEVELOPMENT_TEAM = YOUR_TEAM_ID;/g' ios/Runner.xcodeproj/project.pbxproj
-
-      # 📦 Build IPA (distribution)
-      - name: Build iOS IPA
+      # 📦 Build IPA (force distribution signing)
+      - name: Build iOS IPA (Distribution)
         run: |
           flutter build ipa \
             --release \
-            --export-options-plist=ios/GithubActionsExportOptions.plist
+            --export-options-plist=ios/GithubActionsExportOptions.plist \
+            -- \
+            CODE_SIGN_STYLE=Manual \
+            CODE_SIGN_IDENTITY="Apple Distribution" \
+            DEVELOPMENT_TEAM=AVGT6H69KV \
+            PROVISIONING_PROFILE_SPECIFIER="Viper 10554"
+
 
       - name: Archive IPA
         uses: actions/upload-artifact@v4
