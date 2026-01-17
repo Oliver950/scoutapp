@@ -1,4 +1,4 @@
-name: Build and Distribute iOS IPA
+name: Build & Upload iOS IPA
 
 on:
   push:
@@ -6,18 +6,16 @@ on:
       - main
 
 jobs:
-  build:
-    name: Build IPA and Upload to TestFlight
+  build-ios:
     runs-on: macos-latest
-
+    env:
+      FLUTTER_ROOT: /Users/runner/hostedtoolcache/flutter/stable-3.38.7-arm64
+      PUB_CACHE: /Users/runner/.pub-cache
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      # 1️⃣ Checkout repo
+      - uses: actions/checkout@v2
 
-      - name: Check Xcode version
-        run: /usr/bin/xcodebuild -version
-
-      # 🐦 Install Flutter
+      # 2️⃣ Flutter setup
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
@@ -26,96 +24,87 @@ jobs:
       - name: Flutter pub get
         run: flutter pub get
 
-      # 🔐 Create and unlock keychain
+      # 3️⃣ Create temporary keychain
       - name: Create keychain
         run: |
           security create-keychain -p "${{ secrets.IOS_GITHUB_KEYCHAIN_PASSWORD }}" ios-build.keychain
+          security default-keychain -s ios-build.keychain
           security unlock-keychain -p "${{ secrets.IOS_GITHUB_KEYCHAIN_PASSWORD }}" ios-build.keychain
           security set-keychain-settings -t 3600 -l ios-build.keychain
-          security list-keychains -d user -s ios-build.keychain $(security list-keychains -d user | tr -d '"')
-          security default-keychain -s ios-build.keychain
 
-      # 🔑 Install Development & Distribution Certificates and Provisioning Profiles
-      - name: Install certificates and provisioning profiles
+      # 4️⃣ Install development certificate
+      - name: Import Development Certificate
         run: |
-          set -e
-          mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
-
-          # Development certificate
-          DEV_CERT=$RUNNER_TEMP/dev.p12
-          echo "${{ secrets.IOS_DEV_CERTIFICATE_BASE64 }}" | base64 --decode > $DEV_CERT
-          security import $DEV_CERT -k ios-build.keychain -P "${{ secrets.IOS_BUILD_CERTIFICATE_PASSWORD }}" -A -T /usr/bin/codesign
-
-          # Development provisioning profile
-          DEV_PP=$RUNNER_TEMP/dev_profile.mobileprovision
-          echo "${{ secrets.IOS_DEV_MOBILE_PROVISIONING_PROFILE_BASE64 }}" | base64 --decode > $DEV_PP
-          cp $DEV_PP ~/Library/MobileDevice/Provisioning\ Profiles/
-
-          # Distribution certificate
-          DIST_CERT=$RUNNER_TEMP/dist.p12
-          echo "${{ secrets.IOS_BUILD_CERTIFICATE_BASE64 }}" | base64 --decode > $DIST_CERT
-          security import $DIST_CERT -k ios-build.keychain -P "${{ secrets.IOS_BUILD_CERTIFICATE_PASSWORD }}" -A -T /usr/bin/codesign
-
-          # Distribution provisioning profile
-          DIST_PP=$RUNNER_TEMP/dist_profile.mobileprovision
-          echo "${{ secrets.IOS_MOBILE_PROVISIONING_PROFILE_BASE64 }}" | base64 --decode > $DIST_PP
-          cp $DIST_PP ~/Library/MobileDevice/Provisioning\ Profiles/
-
-          echo "Installed signing identities:"
+          echo "${{ secrets.IOS_DEV_CERTIFICATE_BASE64 }}" | base64 --decode > $RUNNER_TEMP/dev_cert.p12
+          security import $RUNNER_TEMP/dev_cert.p12 \
+            -k ios-build.keychain \
+            -P "${{ secrets.IOS_BUILD_CERTIFICATE_PASSWORD }}" \
+            -T /usr/bin/codesign
           security find-identity -v
 
-      # 🏗 Patch pbxproj for correct development team and bundle ID
-      - name: Patch Xcode project for CI
+      # 5️⃣ Install AppStoreConnect distribution certificate (optional if separate)
+      - name: Import Distribution Certificate
         run: |
-          PBXPROJ="ios/Runner.xcodeproj/project.pbxproj"
-          DEV_TEAM="AVGT6H69KV"
-          BUNDLE_ID="com.viper10554.scouting"
+          echo "${{ secrets.IOS_BUILD_CERTIFICATE_BASE64 }}" | base64 --decode > $RUNNER_TEMP/dist_cert.p12
+          security import $RUNNER_TEMP/dist_cert.p12 \
+            -k ios-build.keychain \
+            -P "${{ secrets.IOS_BUILD_CERTIFICATE_PASSWORD }}" \
+            -T /usr/bin/codesign
 
-          # Manual signing
-          perl -pi -e 's/CODE_SIGN_STYLE = Automatic;/CODE_SIGN_STYLE = Manual;/g' "$PBXPROJ"
-
-          # Insert DEVELOPMENT_TEAM if missing
-          perl -0777 -pi -e "s/(buildSettings = \{)/\$1\n\t\tDEVELOPMENT_TEAM = $DEV_TEAM;/" "$PBXPROJ"
-
-          # Set PRODUCT_BUNDLE_IDENTIFIER
-          perl -pi -e "s/PRODUCT_BUNDLE_IDENTIFIER = [^;]+;/PRODUCT_BUNDLE_IDENTIFIER = $BUNDLE_ID;/g" "$PBXPROJ"
-
-          echo "pbxproj patched: Manual signing, development team, bundle ID applied"
-
-      # 📦 Flutter build without codesign
-      - name: Flutter build IPA
-        run: flutter build ipa --release --export-options-plist=ios/GithubActionsExportOptions.plist --no-codesign
-
-      # 🏗 Archive and export IPA using xcodebuild + ExportOptions.plist
-      - name: Archive and export IPA
+      # 6️⃣ Install provisioning profile
+      - name: Install Provisioning Profile
         run: |
-          ARCHIVE_PATH=$PWD/build/ios/archive
-          IPA_OUTPUT_PATH=$PWD/build/ios/ipa
-          mkdir -p $ARCHIVE_PATH $IPA_OUTPUT_PATH
+          echo "${{ secrets.IOS_MOBILE_PROVISIONING_PROFILE_BASE64 }}" | base64 --decode > $RUNNER_TEMP/profile.mobileprovision
+          UUID=$(/usr/libexec/PlistBuddy -c "Print UUID" /dev/stdin <<< $(security cms -D -i $RUNNER_TEMP/profile.mobileprovision))
+          mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
+          cp $RUNNER_TEMP/profile.mobileprovision ~/Library/MobileDevice/Provisioning\ Profiles/$UUID.mobileprovision
+          echo "Installed provisioning profile UUID: $UUID"
 
+      # 7️⃣ Patch pbxproj for CI signing
+      - name: Patch Xcode project for CI signing
+        run: |
+          PBXPROJ=ios/Runner.xcodeproj/project.pbxproj
+          echo "Patching DEVELOPMENT_TEAM, CODE_SIGN_STYLE, and PRODUCT_BUNDLE_IDENTIFIER"
+          perl -0777 -pi -e 's/(DEVELOPMENT_TEAM = ).*?;/\1AVGT6H69KV;/g' $PBXPROJ
+          perl -0777 -pi -e 's/(CODE_SIGN_STYLE = ).*?;/\1Manual;/g' $PBXPROJ
+          perl -0777 -pi -e 's/(PRODUCT_BUNDLE_IDENTIFIER = ).*?;/\1com.viper10554.scouting;/g' $PBXPROJ
+
+      # 8️⃣ Flutter build without codesign
+      - name: Flutter build (no codesign)
+        run: flutter build ios --release --no-codesign
+
+      # 9️⃣ Archive & export IPA with ExportOptions.plist
+      - name: Xcode archive
+        run: |
+          ARCHIVE_PATH=$PWD/build/ios/xcarchive
+          mkdir -p $ARCHIVE_PATH
           xcodebuild archive \
             -workspace ios/Runner.xcworkspace \
             -scheme Runner \
             -configuration Release \
-            -archivePath $ARCHIVE_PATH/Runner.xcarchive
-
-          xcodebuild -exportArchive \
             -archivePath $ARCHIVE_PATH/Runner.xcarchive \
-            -exportOptionsPlist ios/GithubActionsExportOptions.plist \
-            -exportPath $IPA_OUTPUT_PATH
+            CODE_SIGN_IDENTITY="Apple Distribution" \
+            DEVELOPMENT_TEAM=AVGT6H69KV \
+            PROVISIONING_PROFILE_SPECIFIER="Viper 10554"
 
-      # 📦 Upload IPA artifact
-      - name: Upload IPA artifact
-        uses: actions/upload-artifact@v4
+      - name: Export IPA
+        run: |
+          xcodebuild -exportArchive \
+            -archivePath build/ios/xcarchive/Runner.xcarchive \
+            -exportOptionsPlist ios/GithubActionsExportOptions.plist \
+            -exportPath build/ios/ipa
+
+      # 🔟 Upload IPA artifact
+      - uses: actions/upload-artifact@v4
         with:
           name: release-ipa
-          path: build/ios/ipa/Runner.ipa
+          path: build/ios/ipa/*.ipa
 
-      # 🚀 Upload to TestFlight
-      - name: Upload to TestFlight
+      # 1️⃣1️⃣ Upload to TestFlight
+      - name: Upload IPA to TestFlight
         uses: apple-actions/upload-testflight-build@v3
         with:
-          app-path: build/ios/ipa/Runner.ipa
+          app-path: 'build/ios/ipa/*.ipa'
           issuer-id: ${{ secrets.APPSTORE_ISSUER_ID }}
           api-key-id: ${{ secrets.APPSTORE_API_KEY_ID }}
           api-private-key: ${{ secrets.APPSTORE_API_PRIVATE_KEY }}
