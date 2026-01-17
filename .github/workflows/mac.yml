@@ -8,12 +8,10 @@ on:
 jobs:
   build-ios:
     runs-on: macos-latest
-    env:
-      FLUTTER_ROOT: /Users/runner/hostedtoolcache/flutter/stable-3.38.7-arm64
-      PUB_CACHE: /Users/runner/.pub-cache
     steps:
       - uses: actions/checkout@v2
 
+      # Install Flutter
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
@@ -22,7 +20,7 @@ jobs:
       - name: Flutter pub get
         run: flutter pub get
 
-      # 🔐 Keychain
+      # Create keychain
       - name: Create keychain
         run: |
           security create-keychain -p "${{ secrets.IOS_GITHUB_KEYCHAIN_PASSWORD }}" ios-build.keychain
@@ -30,18 +28,17 @@ jobs:
           security unlock-keychain -p "${{ secrets.IOS_GITHUB_KEYCHAIN_PASSWORD }}" ios-build.keychain
           security set-keychain-settings -t 3600 -l ios-build.keychain
 
-      # 🔑 Import Development Certificate
-      - name: Import Development Certificate
+      # Import Development Certificate
+      - name: Import Dev Certificate
         run: |
           echo "${{ secrets.IOS_DEV_CERTIFICATE_BASE64 }}" | base64 --decode > $RUNNER_TEMP/dev_cert.p12
           security import $RUNNER_TEMP/dev_cert.p12 \
             -k ios-build.keychain \
             -P "${{ secrets.IOS_BUILD_CERTIFICATE_PASSWORD }}" \
             -T /usr/bin/codesign
-          security find-identity -v
 
-      # 🔑 Import Distribution Certificate
-      - name: Import Distribution Certificate
+      # Import Distribution Certificate
+      - name: Import Dist Certificate
         run: |
           echo "${{ secrets.IOS_BUILD_CERTIFICATE_BASE64 }}" | base64 --decode > $RUNNER_TEMP/dist_cert.p12
           security import $RUNNER_TEMP/dist_cert.p12 \
@@ -49,7 +46,7 @@ jobs:
             -P "${{ secrets.IOS_BUILD_CERTIFICATE_PASSWORD }}" \
             -T /usr/bin/codesign
 
-      # 📄 Install provisioning profile
+      # Install App Store provisioning profile
       - name: Install Provisioning Profile
         run: |
           echo "${{ secrets.IOS_MOBILE_PROVISIONING_PROFILE_BASE64 }}" | base64 --decode > $RUNNER_TEMP/profile.mobileprovision
@@ -58,19 +55,11 @@ jobs:
           cp $RUNNER_TEMP/profile.mobileprovision ~/Library/MobileDevice/Provisioning\ Profiles/$UUID.mobileprovision
           echo "Installed provisioning profile UUID: $UUID"
 
-      # 📝 Patch pbxproj for manual signing + correct bundle id
-      - name: Patch Xcode project
-        run: |
-          PBXPROJ=ios/Runner.xcodeproj/project.pbxproj
-          perl -0777 -pi -e 's/(DEVELOPMENT_TEAM = ).*?;/\1AVGT6H69KV;/g' $PBXPROJ
-          perl -0777 -pi -e 's/(CODE_SIGN_STYLE = ).*?;/\1Manual;/g' $PBXPROJ
-          perl -0777 -pi -e 's/(PRODUCT_BUNDLE_IDENTIFIER = ).*?;/\1com.viper10554.scouting;/g' $PBXPROJ
-
-      # 💻 Flutter build without signing
-      - name: Flutter build (no codesign)
+      # Flutter build without signing (avoids pbxproj upgrades)
+      - name: Flutter build iOS (no codesign)
         run: flutter build ios --release --no-codesign
 
-      # 📦 Archive & export IPA
+      # Xcode archive using manual signing
       - name: Xcode archive
         run: |
           ARCHIVE_PATH=$PWD/build/ios/xcarchive
@@ -80,10 +69,12 @@ jobs:
             -scheme Runner \
             -configuration Release \
             -archivePath $ARCHIVE_PATH/Runner.xcarchive \
+            CODE_SIGN_STYLE=Manual \
             CODE_SIGN_IDENTITY="Apple Distribution" \
             DEVELOPMENT_TEAM=AVGT6H69KV \
             PROVISIONING_PROFILE_SPECIFIER="Viper 10554"
 
+      # Export IPA using export options plist
       - name: Export IPA
         run: |
           xcodebuild -exportArchive \
@@ -91,13 +82,13 @@ jobs:
             -exportOptionsPlist ios/GithubActionsExportOptions.plist \
             -exportPath build/ios/ipa
 
-      # 📤 Upload artifact
+      # Upload IPA artifact
       - uses: actions/upload-artifact@v4
         with:
           name: release-ipa
           path: build/ios/ipa/*.ipa
 
-      # 🛫 Upload to TestFlight
+      # Upload to TestFlight
       - name: Upload IPA to TestFlight
         uses: apple-actions/upload-testflight-build@v3
         with:
