@@ -65,17 +65,16 @@ jobs:
           mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
           cp $PP_PATH ~/Library/MobileDevice/Provisioning\ Profiles/$UUID.mobileprovision
 
-      # 📦 Build IPA (force distribution signing)
-      - name: Build iOS IPA (Distribution)
+      - name: Build iOS IPA (Distribution, manual signing)
         run: |
           flutter build ipa \
             --release \
             --export-options-plist=ios/GithubActionsExportOptions.plist \
-            -- \
-            CODE_SIGN_STYLE=Manual \
-            CODE_SIGN_IDENTITY="Apple Distribution" \
-            DEVELOPMENT_TEAM=AVGT6H69KV \
-            PROVISIONING_PROFILE_SPECIFIER="Viper 10554"
+            --xcargs="\
+              CODE_SIGN_STYLE=Manual \
+              CODE_SIGN_IDENTITY=Apple\ Distribution \
+              DEVELOPMENT_TEAM=AVGT6H69KV \
+              PROVISIONING_PROFILE_SPECIFIER=Viper\ 10554"
 
 
       - name: Archive IPA
