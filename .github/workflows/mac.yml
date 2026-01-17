@@ -1,4 +1,4 @@
-name: Build and distribute iOS IPA
+name: Build and Upload iOS IPA
 
 on:
   push:
@@ -7,24 +7,27 @@ on:
 
 jobs:
   build:
-    name: Build iOS IPA
+    name: Build & TestFlight
     runs-on: macos-latest
     defaults:
       run:
         shell: bash
 
     steps:
-      - uses: actions/checkout@v3
+      # 1️⃣ Checkout code
+      - uses: actions/checkout@v2
 
-      - name: Setup Flutter
-        uses: subosito/flutter-action@v2
+      # 2️⃣ Install Flutter
+      - uses: subosito/flutter-action@v2
         with:
           channel: stable
           cache: true
 
+      # 3️⃣ Flutter dependencies
       - name: Flutter pub get
         run: flutter pub get
 
+      # 4️⃣ Create keychain
       - name: Create temporary keychain
         run: |
           security create-keychain -p "${{ secrets.IOS_GITHUB_KEYCHAIN_PASSWORD }}" ios-build.keychain
@@ -32,61 +35,60 @@ jobs:
           security unlock-keychain -p "${{ secrets.IOS_GITHUB_KEYCHAIN_PASSWORD }}" ios-build.keychain
           security set-keychain-settings -t 3600 -l ios-build.keychain
 
-      - name: Install Distribution Certificate
+      # 5️⃣ Import Distribution Certificate
+      - name: Import Distribution Certificate
         run: |
-          CERT_PATH="$RUNNER_TEMP/dist.p12"
-          echo "${{ secrets.IOS_BUILD_CERTIFICATE_BASE64 }}" | base64 --decode > "$CERT_PATH"
-          security import "$CERT_PATH" \
+          CERT_PATH=$RUNNER_TEMP/dist.p12
+          echo "${{ secrets.IOS_BUILD_CERTIFICATE_BASE64 }}" | base64 --decode > $CERT_PATH
+          security import $CERT_PATH \
             -k ios-build.keychain \
             -P "${{ secrets.IOS_BUILD_CERTIFICATE_PASSWORD }}" \
-            -T /usr/bin/codesign \
-            -A
+            -A -T /usr/bin/codesign
 
+          echo "Installed signing identities:"
           security find-identity -v
 
+      # 6️⃣ Install App Store Provisioning Profile
       - name: Install App Store Provisioning Profile
         run: |
-          PROFILE_PATH="$RUNNER_TEMP/appstore.mobileprovision"
-          echo "${{ secrets.IOS_APPSTORE_PROVISIONING_PROFILE_BASE64 }}" | base64 --decode > "$PROFILE_PATH"
+          PROFILE_PATH=$RUNNER_TEMP/appstore.mobileprovision
+          echo "${{ secrets.IOS_MOBILE_PROVISIONING_PROFILE_BASE64 }}" | base64 --decode > $PROFILE_PATH
           mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
-          cp "$PROFILE_PATH" ~/Library/MobileDevice/Provisioning\ Profiles/
+          cp $PROFILE_PATH ~/Library/MobileDevice/Provisioning\ Profiles/
 
-      # Flutter build without signing
-      - name: Flutter build iOS (no codesign)
-        run: flutter build ios --release --no-codesign
+      # 7️⃣ Build Flutter IPA (no codesign)
+      - name: Flutter build IPA
+        run: flutter build ipa --release --no-codesign
 
-      # Archive with Xcode, passing development team and manual signing
-      - name: Archive IPA
+      # 8️⃣ Archive & Export with Xcode
+      - name: Archive & Export IPA
         run: |
           ARCHIVE_PATH="$PWD/build/ios/Runner.xcarchive"
+          EXPORT_PATH="$PWD/build/ios/ipa"
+
           xcodebuild archive \
             -workspace ios/Runner.xcworkspace \
             -scheme Runner \
             -configuration Release \
             -archivePath "$ARCHIVE_PATH" \
-            -allowProvisioningUpdates \
             DEVELOPMENT_TEAM=AVGT6H69KV \
-            CODE_SIGN_IDENTITY="Apple Distribution"
+            CODE_SIGN_STYLE=Manual \
+            CODE_SIGN_IDENTITY="Apple Distribution" \
+            PROVISIONING_PROFILE_SPECIFIER="Viper 10554"
 
-      # Export IPA using ExportOptions.plist
-      - name: Export IPA
-        run: |
-          EXPORT_PATH="$PWD/build/ios/ipa"
-          mkdir -p "$EXPORT_PATH"
           xcodebuild -exportArchive \
-            -archivePath "$PWD/build/ios/Runner.xcarchive" \
+            -archivePath "$ARCHIVE_PATH" \
             -exportOptionsPlist ios/GithubActionsExportOptions.plist \
-            -exportPath "$EXPORT_PATH" \
-            -allowProvisioningUpdates \
-            DEVELOPMENT_TEAM=AVGT6H69KV \
-            CODE_SIGN_IDENTITY="Apple Distribution"
+            -exportPath "$EXPORT_PATH"
 
+      # 9️⃣ Upload IPA artifact (optional)
       - name: Upload IPA artifact
         uses: actions/upload-artifact@v4
         with:
           name: release-ipa
           path: build/ios/ipa/*.ipa
 
+      # 🔟 Upload to TestFlight
       - name: Upload to TestFlight
         uses: apple-actions/upload-testflight-build@v3
         with:
