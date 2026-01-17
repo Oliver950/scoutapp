@@ -1,4 +1,4 @@
-name: Build and distribute ipa
+name: Build and distribute IPA
 
 on:
   push:
@@ -36,48 +36,87 @@ jobs:
           security unlock-keychain -p "${{ secrets.IOS_GITHUB_KEYCHAIN_PASSWORD }}" ios-build.keychain
           security set-keychain-settings -t 3600 -l ios-build.keychain
 
-      # 6️⃣ Import Apple Distribution Certificate
-      - name: Import Distribution Certificate
+      # 6️⃣ Import dummy Development Certificate
+      - name: Import Dummy Development Certificate
         run: |
-          CERT_PATH=$RUNNER_TEMP/dist.p12
-          echo "${{ secrets.IOS_BUILD_CERTIFICATE_BASE64 }}" | base64 --decode > $CERT_PATH
-          security import $CERT_PATH \
+          DEV_CERT_PATH=$RUNNER_TEMP/dev.p12
+          echo "${{ secrets.IOS_DEV_CERTIFICATE_BASE64 }}" | base64 --decode > $DEV_CERT_PATH
+          security import $DEV_CERT_PATH \
             -k ios-build.keychain \
             -P "${{ secrets.IOS_BUILD_CERTIFICATE_PASSWORD }}" \
             -A -T /usr/bin/codesign
-          echo "Installed signing identities:"
+          echo "Installed development identities:"
           security find-identity -v
 
-      # 7️⃣ Install App Store Provisioning Profile
-      - name: Install & inspect provisioning profile
+      # 7️⃣ Install dummy Development provisioning profile
+      - name: Install & inspect Development provisioning profile
         run: |
-          PP_PATH=$RUNNER_TEMP/profile.mobileprovision
-          echo "${{ secrets.IOS_MOBILE_PROVISIONING_PROFILE_BASE64 }}" | base64 --decode > $PP_PATH
+          DEV_PP_PATH=$RUNNER_TEMP/dev_profile.mobileprovision
+          echo "${{ secrets.IOS_DEV_MOBILE_PROVISIONING_PROFILE_BASE64 }}" | base64 --decode > $DEV_PP_PATH
 
-          echo "Provisioning profile contents:"
-          security cms -D -i $PP_PATH | plutil -p -
+          echo "Development provisioning profile contents:"
+          security cms -D -i $DEV_PP_PATH | plutil -p -
 
-          UUID=$(/usr/libexec/PlistBuddy -c "Print UUID" /dev/stdin <<< $(security cms -D -i $PP_PATH))
-          NAME=$(/usr/libexec/PlistBuddy -c "Print Name" /dev/stdin <<< $(security cms -D -i $PP_PATH))
-          APPID=$(/usr/libexec/PlistBuddy -c "Print Entitlements:application-identifier" /dev/stdin <<< $(security cms -D -i $PP_PATH))
+          UUID=$(/usr/libexec/PlistBuddy -c "Print UUID" /dev/stdin <<< $(security cms -D -i $DEV_PP_PATH))
+          NAME=$(/usr/libexec/PlistBuddy -c "Print Name" /dev/stdin <<< $(security cms -D -i $DEV_PP_PATH))
+          APPID=$(/usr/libexec/PlistBuddy -c "Print Entitlements:application-identifier" /dev/stdin <<< $(security cms -D -i $DEV_PP_PATH))
 
-          echo "UUID: $UUID"
-          echo "Name: $NAME"
-          echo "App ID: $APPID"
+          echo "Dev UUID: $UUID"
+          echo "Dev Profile Name: $NAME"
+          echo "Dev App ID: $APPID"
 
           mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
-          cp $PP_PATH ~/Library/MobileDevice/Provisioning\ Profiles/$UUID.mobileprovision
+          cp $DEV_PP_PATH ~/Library/MobileDevice/Provisioning\ Profiles/$UUID.mobileprovision
 
-      # 8️⃣ Force correct bundle ID in Info.plist
+      # 8️⃣ Import App Store Distribution Certificate
+      - name: Import Distribution Certificate
+        run: |
+          DIST_CERT_PATH=$RUNNER_TEMP/dist.p12
+          echo "${{ secrets.IOS_BUILD_CERTIFICATE_BASE64 }}" | base64 --decode > $DIST_CERT_PATH
+          security import $DIST_CERT_PATH \
+            -k ios-build.keychain \
+            -P "${{ secrets.IOS_BUILD_CERTIFICATE_PASSWORD }}" \
+            -A -T /usr/bin/codesign
+          echo "Installed distribution identities:"
+          security find-identity -v
+
+      # 9️⃣ Install App Store Provisioning Profile
+      - name: Install & inspect App Store provisioning profile
+        run: |
+          DIST_PP_PATH=$RUNNER_TEMP/dist_profile.mobileprovision
+          echo "${{ secrets.IOS_MOBILE_PROVISIONING_PROFILE_BASE64 }}" | base64 --decode > $DIST_PP_PATH
+
+          echo "Distribution provisioning profile contents:"
+          security cms -D -i $DIST_PP_PATH | plutil -p -
+
+          UUID=$(/usr/libexec/PlistBuddy -c "Print UUID" /dev/stdin <<< $(security cms -D -i $DIST_PP_PATH))
+          NAME=$(/usr/libexec/PlistBuddy -c "Print Name" /dev/stdin <<< $(security cms -D -i $DIST_PP_PATH))
+          APPID=$(/usr/libexec/PlistBuddy -c "Print Entitlements:application-identifier" /dev/stdin <<< $(security cms -D -i $DIST_PP_PATH))
+
+          echo "Dist UUID: $UUID"
+          echo "Dist Profile Name: $NAME"
+          echo "Dist App ID: $APPID"
+
+          mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
+          cp $DIST_PP_PATH ~/Library/MobileDevice/Provisioning\ Profiles/$UUID.mobileprovision
+
+      # 🔟 Force correct bundle ID
       - name: Set bundle identifier
         run: |
           /usr/libexec/PlistBuddy -c "Set :CFBundleIdentifier com.viper10554.scouting" ios/Runner/Info.plist
 
-      # 9️⃣ Build IPA
+      # 1️⃣1️⃣ Build IPA
       - name: Build iOS IPA
         run: flutter build ipa --release --export-options-plist=ios/GithubActionsExportOptions.plist
 
-      # 🔟 Upload IPA to TestFlight
+      # 1️⃣2️⃣ Upload IPA as artifact
+      - name: Archive IPA
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-ipa
+          path: build/ios/ipa/Runner.ipa
+
+      # 1️⃣3️⃣ Upload to TestFlight
       - name: Upload app to TestFlight
         uses: apple-actions/upload-testflight-build@v3
         with:
