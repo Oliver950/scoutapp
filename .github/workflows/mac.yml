@@ -7,24 +7,28 @@ on:
 
 jobs:
   build:
-    name: build
+    name: Build iOS and Upload to TestFlight
     runs-on: macos-latest
-    steps:
-      - uses: actions/checkout@v2
 
+    steps:
+      # 1️⃣ Checkout code
+      - uses: actions/checkout@v4
+
+      # 2️⃣ Check Xcode version
       - name: Xcode version
         run: /usr/bin/xcodebuild -version
 
-      # 🐦 Setup Flutter
+      # 3️⃣ Install Flutter
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
           cache: true
 
+      # 4️⃣ Flutter dependencies
       - name: Flutter pub get
         run: flutter pub get
 
-      # 🔐 Create keychain
+      # 5️⃣ Create temporary keychain
       - name: Create keychain
         run: |
           security create-keychain -p "${{ secrets.IOS_GITHUB_KEYCHAIN_PASSWORD }}" ios-build.keychain
@@ -32,7 +36,7 @@ jobs:
           security unlock-keychain -p "${{ secrets.IOS_GITHUB_KEYCHAIN_PASSWORD }}" ios-build.keychain
           security set-keychain-settings -t 3600 -l ios-build.keychain
 
-      # 🔑 Import Apple Distribution certificate
+      # 6️⃣ Import Apple Distribution Certificate
       - name: Import Distribution Certificate
         run: |
           CERT_PATH=$RUNNER_TEMP/dist.p12
@@ -41,53 +45,43 @@ jobs:
             -k ios-build.keychain \
             -P "${{ secrets.IOS_BUILD_CERTIFICATE_PASSWORD }}" \
             -A -T /usr/bin/codesign
-
-          echo "🔑 Installed code signing identities:"
+          echo "Installed signing identities:"
           security find-identity -v
 
-      # 📄 Install provisioning profile + 🔍 print details
+      # 7️⃣ Install App Store Provisioning Profile
       - name: Install & inspect provisioning profile
         run: |
           PP_PATH=$RUNNER_TEMP/profile.mobileprovision
           echo "${{ secrets.IOS_MOBILE_PROVISIONING_PROFILE_BASE64 }}" | base64 --decode > $PP_PATH
 
-          echo "📄 Provisioning profile details:"
+          echo "Provisioning profile contents:"
           security cms -D -i $PP_PATH | plutil -p -
 
           UUID=$(/usr/libexec/PlistBuddy -c "Print UUID" /dev/stdin <<< $(security cms -D -i $PP_PATH))
           NAME=$(/usr/libexec/PlistBuddy -c "Print Name" /dev/stdin <<< $(security cms -D -i $PP_PATH))
           APPID=$(/usr/libexec/PlistBuddy -c "Print Entitlements:application-identifier" /dev/stdin <<< $(security cms -D -i $PP_PATH))
 
-          echo "🆔 UUID: $UUID"
-          echo "🏷️ Name: $NAME"
-          echo "📦 App Identifier: $APPID"
+          echo "UUID: $UUID"
+          echo "Name: $NAME"
+          echo "App ID: $APPID"
 
           mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
           cp $PP_PATH ~/Library/MobileDevice/Provisioning\ Profiles/$UUID.mobileprovision
 
-      - name: Build iOS IPA (Distribution, manual signing)
+      # 8️⃣ Force correct bundle ID in Info.plist
+      - name: Set bundle identifier
         run: |
-          flutter build ipa \
-            --release \
-            --export-options-plist=ios/GithubActionsExportOptions.plist \
-            --xcargs="\
-              CODE_SIGN_STYLE=Manual \
-              CODE_SIGN_IDENTITY=Apple\ Distribution \
-              DEVELOPMENT_TEAM=AVGT6H69KV \
-              PROVISIONING_PROFILE_SPECIFIER=Viper\ 10554"
+          /usr/libexec/PlistBuddy -c "Set :CFBundleIdentifier com.viper10554.scouting" ios/Runner/Info.plist
 
+      # 9️⃣ Build IPA
+      - name: Build iOS IPA
+        run: flutter build ipa --release --export-options-plist=ios/GithubActionsExportOptions.plist
 
-      - name: Archive IPA
-        uses: actions/upload-artifact@v4
-        with:
-          name: release-ipa
-          # Try running the build locally with the build command to be sure of this path
-          path: build/ios/ipa/MyApp.ipa
-
-      - name: 'Upload app to TestFlight'
+      # 🔟 Upload IPA to TestFlight
+      - name: Upload app to TestFlight
         uses: apple-actions/upload-testflight-build@v3
-        with: 
-          app-path: 'build/ios/ipa/MyApp.ipa' 
+        with:
+          app-path: build/ios/ipa/Runner.ipa
           issuer-id: ${{ secrets.APPSTORE_ISSUER_ID }}
           api-key-id: ${{ secrets.APPSTORE_API_KEY_ID }}
           api-private-key: ${{ secrets.APPSTORE_API_PRIVATE_KEY }}
