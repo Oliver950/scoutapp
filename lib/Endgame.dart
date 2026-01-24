@@ -18,7 +18,7 @@ class Endgame extends StatefulWidget {
   
 class _FourthRouteState extends State<Endgame> {  
   String _output4 = '';
-  String _tower = 'NA';
+  String _tower = '0';
   String _position = 'NA';
 
   @override
@@ -50,10 +50,10 @@ class _FourthRouteState extends State<Endgame> {
                   DropdownButton(
                     value: _tower,
                     items: const [
-                      DropdownMenuItem(value: '1',child: Text('Tower 1'),),
-                      DropdownMenuItem(value: '2',child: Text('Tower 2'),),
                       DropdownMenuItem(value: '3',child: Text('Tower 3'),),
-                      DropdownMenuItem(value: 'NA',child: Text('NA'),),
+                      DropdownMenuItem(value: '2',child: Text('Tower 2'),),
+                      DropdownMenuItem(value: '1',child: Text('Tower 1'),),
+                      DropdownMenuItem(value: '0',child: Text('NA'),),
                     ],
                     onChanged: (value){
                       setState(() {
@@ -70,7 +70,7 @@ class _FourthRouteState extends State<Endgame> {
                   const Text('Climb position'),
                   const SizedBox(width: 6,),
                   DropdownButton(
-                    value: _tower,
+                    value: _position,
                     items: const [
                       DropdownMenuItem(value: 'side',child: Text('Side'),),
                       DropdownMenuItem(value: 'front',child: Text('Front'),),
@@ -78,7 +78,7 @@ class _FourthRouteState extends State<Endgame> {
                     ],
                     onChanged: (value){
                       setState(() {
-                        _tower = value as String;
+                        _position = value as String;
                       });
                     },
                   )
@@ -99,7 +99,7 @@ class _FourthRouteState extends State<Endgame> {
                     padding: const EdgeInsets.all(12),
                   ),
                   onPressed: () {
-                    _output4 ='$_tower';
+                    _output4 =_tower;
                     Navigator.push(
                       context,
                       MaterialPageRoute(

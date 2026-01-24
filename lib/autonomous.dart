@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'teleop.dart';
 import 'dart:async';
@@ -14,12 +15,15 @@ class Autonomous extends StatefulWidget{
   class _SecondRouteState extends State<Autonomous>{
     String _output2 = '';
     final _shooting = Stopwatch();
-    int _fuel = 0;
-    bool _depot = false;
+    final int _fuel = 0;
     bool _outpost = false;
-    bool _tower = false;
+    bool _depot = false;
+    bool _trench = false;
+    bool _bump = false;
+    int _tower = 0;
     Timer? _uiTimer;
-
+    final List<List<double>> points = [];
+    double _rotation = 0;
 
   @override
   Widget build(BuildContext context) {
@@ -42,7 +46,7 @@ class Autonomous extends StatefulWidget{
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text('Time shooting'),
+            const Text('Time shooting'),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -58,26 +62,80 @@ class Autonomous extends StatefulWidget{
                       );
                     });
                   },
-                  child: Text('start'),
+                  child: const Text('start'),
                 ),
-                Container(width: 25, child: Text(_shooting.elapsed.inSeconds.toString()), alignment: Alignment.center,),
+                Container(width: 25, alignment: Alignment.center, child: Text(_shooting.elapsed.inSeconds.toString()),),
                 ElevatedButton (
                   onPressed: () {
                     setState(() {
                       _shooting.stop();
                     });
                   },
-                  child: Text('stop'),
+                  child: const Text('stop'),
                 )
               ],
             ),
-            SizedBox(height: 12),
+            const SizedBox(height: 12),
+            GestureDetector(
+              onTapDown: (details){
+                setState(() {
+                  points.add([double.parse(details.localPosition.dx.toStringAsFixed(2)),double.parse(details.localPosition.dy.toStringAsFixed(2))]);
+                });
+              },
+              child: Stack(
+                children: [
+                  Transform.rotate(
+                    angle: _rotation,
+                    child: Image.asset(
+                      'assets/2026Field.png',
+                      width: 356.5,
+                      height: 174,
+                      fit:BoxFit.contain
+                      ),
+                    ),
+                    ...points.map((p) => Positioned(
+              left: p[0]-5,
+              top: p[1]-5,
+              child: Container(
+                width: 10,
+                height: 10,
+                decoration: const BoxDecoration(
+                  color: Colors.red,
+                  shape: BoxShape.circle,
+                ),
+              ),
+            )),
+                ],
+              ),
+            ),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Container(
-                  width: 125,
-                  child: const Text('Collected Depot?'),
+                IconButton(
+                  icon: const Icon(Icons.rotate_left),
+                  onPressed: () {
+                    setState(() {
+                      _rotation += pi;
+                    });
+                  }
+                ),
+                IconButton(
+                  icon: const Icon(Icons.undo),
+                  onPressed: points.isNotEmpty ? () {
+                    setState(() {
+                      points.removeLast();
+                    });
+                  }
+                  : null,
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const SizedBox(
+                  child: Text('Depot?'),
                 ),
                 Checkbox(
                   value: _depot,
@@ -86,16 +144,9 @@ class Autonomous extends StatefulWidget{
                       _depot = value ?? false;
                     });
                   }
-                )
-              ],
-            ),
-            SizedBox(height: 12),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Container(
-                  width: 125,
-                  child: const Text('Collected Outpost?'),
+                ),
+                const SizedBox(
+                  child: Text('Outpost?'),
                 ),
                 Checkbox(
                   value: _outpost,
@@ -107,19 +158,46 @@ class Autonomous extends StatefulWidget{
                 )
               ],
             ),
-            SizedBox(height: 12),
+            const SizedBox(height: 12),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Container(
-                  width: 125,
-                  child: const Text('Climbed'),
+                const SizedBox(
+                  child: Text('Trench?'),
                 ),
                 Checkbox(
-                  value: _tower,
+                  value: _trench,
                   onChanged: (bool? value) {
                     setState(() {
-                      _tower = value ?? false;
+                      _trench = value ?? false;
+                    });
+                  }
+                ),
+                const SizedBox(
+                  child: Text('Bump?'),
+                ),
+                Checkbox(
+                  value: _bump,
+                  onChanged: (bool? value) {
+                    setState(() {
+                      _bump = value ?? false;
+                    });
+                  }
+                )
+              ],
+            ),
+            const SizedBox(height: 12),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const SizedBox(
+                  child: Text('Climbed?'),
+                ),
+                Checkbox(
+                  value: _tower == 1,
+                  onChanged: (bool? value) {
+                    setState(() {
+                      _tower = value == true ? 1 : 0;
                     });
                   }
                 )
@@ -139,7 +217,7 @@ class Autonomous extends StatefulWidget{
                     padding: const EdgeInsets.all(12),
                   ),
                   onPressed: () {
-                    _output2 ='$_fuel\t$_depot\t$_outpost\t$_tower';
+                    _output2 ='$_fuel\t${points.map((p) => '${p[0]},${p[1]}').join(';')}\t$_outpost\t$_depot\t$_trench\t$_bump\t$_tower';
                     Navigator.push(
                       
                       context,
