@@ -26,9 +26,41 @@ jobs:
           /usr/libexec/PlistBuddy -c "Set :CFBundleIdentifier com.viper10554.scoutapp" ios/Runner/Info.plist || true
           sed -i '' 's/PRODUCT_BUNDLE_IDENTIFIER = .*;/PRODUCT_BUNDLE_IDENTIFIER = com.viper10554.scoutapp;/' ios/Runner.xcodeproj/project.pbxproj
 
-      # Build unsigned IPA directly via Flutter
-      - name: Build unsigned IPA
+      # Build Flutter iOS output (no signing) → produces xcarchive
+      - name: Build Flutter iOS archive
         run: flutter build ipa --release --no-codesign
+
+      # Export unsigned IPA from archive
+      - name: Export unsigned IPA
+        run: |
+          ARCHIVE_PATH="build/ios/archive/Runner.xcarchive"
+          EXPORT_PATH="build/ios/ipa"
+          mkdir -p "$EXPORT_PATH"
+
+          cat > ExportOptions.plist <<EOF
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+            <key>method</key>
+            <string>debugging</string>
+            <key>signingStyle</key>
+            <string>manual</string>
+            <key>compileBitcode</key>
+            <false/>
+            <key>stripSwiftSymbols</key>
+            <true/>
+            <key>destination</key>
+            <string>export</string>
+          </dict>
+          </plist>
+          EOF
+
+          xcodebuild -exportArchive \
+            -archivePath "$ARCHIVE_PATH" \
+            -exportOptionsPlist ExportOptions.plist \
+            -exportPath "$EXPORT_PATH" \
+            CODE_SIGNING_ALLOWED=NO
 
       - name: Upload IPA artifact
         uses: actions/upload-artifact@v4
