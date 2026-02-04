@@ -20,17 +20,21 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
+      # ✅ THIS LINE SETS THE APP ICON
+      - name: Set app icon
+        run: flutter pub run flutter_launcher_icons
+
       # Force Scout bundle identifier
       - name: Set bundle identifier
         run: |
           /usr/libexec/PlistBuddy -c "Set :CFBundleIdentifier com.viper10554.scoutapp" ios/Runner/Info.plist || true
           sed -i '' 's/PRODUCT_BUNDLE_IDENTIFIER = .*;/PRODUCT_BUNDLE_IDENTIFIER = com.viper10554.scoutapp;/' ios/Runner.xcodeproj/project.pbxproj
 
-      # Build Flutter iOS app (no signing)
+      # Build Flutter iOS output (no signing)
       - name: Build Flutter iOS output
         run: flutter build ios --release --no-codesign
 
-      # Create archive (no signing, no team)
+      # Create archive (no signing)
       - name: Create iOS archive
         run: |
           xcodebuild archive \
@@ -45,8 +49,8 @@ jobs:
             CODE_SIGN_IDENTITY="" \
             PROVISIONING_PROFILE_SPECIFIER=""
 
-      # Manually extract .app and zip into unsigned IPA
-      - name: Create unsigned IPA
+      # Create unsigned IPA and zip
+      - name: Create unsigned IPA and ZIP
         run: |
           ARCHIVE_PATH="build/Runner.xcarchive"
           EXPORT_PATH="build/ipa"
@@ -58,24 +62,20 @@ jobs:
             exit 1
           fi
 
-          APP_NAME=$(basename "$APP_PATH")
-          IPA_NAME="${APP_NAME%.app}.ipa"
-
-          echo "📱 Found app: $APP_NAME"
-
           rm -rf "$EXPORT_PATH/Payload"
           mkdir -p "$EXPORT_PATH/Payload"
           cp -r "$APP_PATH" "$EXPORT_PATH/Payload/"
 
           cd "$EXPORT_PATH"
-          rm -f "$IPA_NAME"
-          zip -r "$IPA_NAME" Payload
+          rm -f ViperScoutApp.ipa ScoutApp.zip
+          zip -r ViperScoutApp.ipa Payload
+          zip -r ScoutApp.zip ViperScoutApp.ipa
           rm -rf Payload
 
-          echo "✅ Unsigned IPA created at $EXPORT_PATH/$IPA_NAME"
+          echo "✅ Created ScoutApp.zip containing ViperScoutApp.ipa"
 
-      - name: Upload IPA artifact
+      - name: Upload ZIP artifact
         uses: actions/upload-artifact@v4
         with:
-          name: scout-unsigned-ipa
-          path: build/ipa/*.ipa
+          name: ScoutApp.zip
+          path: build/ipa/ScoutApp.zip
