@@ -23,10 +23,12 @@ jobs:
       # --- BUILD 1: Neutral icon (logo.png) ---
       - name: Set neutral app icon
         run: |
-          echo "flutter_icons:
+          cat <<EOF > flutter_icons.yaml
+flutter_icons:
   ios: true
   android: false
-  image_path: assets/logo.png" > flutter_icons.yaml
+  image_path: assets/logo.png
+EOF
           flutter pub run flutter_launcher_icons:main
 
       - name: Set bundle ID & app name (neutral)
@@ -74,10 +76,12 @@ jobs:
       # --- BUILD 2: Viper icon ---
       - name: Set Viper app icon
         run: |
-          echo "flutter_icons:
+          cat <<EOF > flutter_icons.yaml
+flutter_icons:
   ios: true
   android: false
-  image_path: assets/viper.png" > flutter_icons.yaml
+  image_path: assets/viper.png
+EOF
           flutter pub run flutter_launcher_icons:main
 
       - name: Set bundle ID & app name (Viper)
