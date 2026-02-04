@@ -34,7 +34,7 @@ EOF
       - name: Set bundle ID & app name (neutral)
         run: |
           /usr/libexec/PlistBuddy -c "Set :CFBundleIdentifier frc.2026.scoutingapp" ios/Runner/Info.plist || true
-          /usr/libexec/PlistBuddy -c "Set :CFBundleDisplayName 'FRC 2026 SCOUTING'" ios/Runner/Info.plist
+          /usr/libexec/PlistBuddy -c "Set :CFBundleDisplayName FRC 2026 SCOUTING" ios/Runner/Info.plist
           sed -i '' 's/PRODUCT_BUNDLE_IDENTIFIER = .*;/PRODUCT_BUNDLE_IDENTIFIER = frc.2026.scoutingapp;/' ios/Runner.xcodeproj/project.pbxproj
 
       - name: Build Flutter iOS output (neutral)
@@ -87,7 +87,7 @@ EOF
       - name: Set bundle ID & app name (Viper)
         run: |
           /usr/libexec/PlistBuddy -c "Set :CFBundleIdentifier frc.2026.scoutingapp" ios/Runner/Info.plist || true
-          /usr/libexec/PlistBuddy -c "Set :CFBundleDisplayName 'FRC 2026 SCOUTING'" ios/Runner/Info.plist
+          /usr/libexec/PlistBuddy -c "Set :CFBundleDisplayName FRC 2026 SCOUTING" ios/Runner/Info.plist
           sed -i '' 's/PRODUCT_BUNDLE_IDENTIFIER = .*;/PRODUCT_BUNDLE_IDENTIFIER = frc.2026.scoutingapp;/' ios/Runner.xcodeproj/project.pbxproj
 
       - name: Build Flutter iOS output (Viper)
