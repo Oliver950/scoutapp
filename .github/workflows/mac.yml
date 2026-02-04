@@ -10,31 +10,34 @@ jobs:
     runs-on: macos-latest
 
     steps:
+      # 1️⃣ Checkout code
       - uses: actions/checkout@v4
 
+      # 2️⃣ Install Flutter
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
           cache: true
 
+      # 3️⃣ Install dependencies
       - name: Install dependencies
         run: flutter pub get
 
-      # ✅ THIS LINE SETS THE APP ICON
+      # 4️⃣ Generate iOS app icon from assets/viper.png
       - name: Set app icon
-        run: flutter pub run flutter_launcher_icons
+        run: flutter pub run flutter_launcher_icons:main
 
-      # Force Scout bundle identifier
+      # 5️⃣ Force Scout bundle identifier
       - name: Set bundle identifier
         run: |
           /usr/libexec/PlistBuddy -c "Set :CFBundleIdentifier com.viper10554.scoutapp" ios/Runner/Info.plist || true
           sed -i '' 's/PRODUCT_BUNDLE_IDENTIFIER = .*;/PRODUCT_BUNDLE_IDENTIFIER = com.viper10554.scoutapp;/' ios/Runner.xcodeproj/project.pbxproj
 
-      # Build Flutter iOS output (no signing)
+      # 6️⃣ Build Flutter iOS app (no signing)
       - name: Build Flutter iOS output
         run: flutter build ios --release --no-codesign
 
-      # Create archive (no signing)
+      # 7️⃣ Create Xcode archive (no signing)
       - name: Create iOS archive
         run: |
           xcodebuild archive \
@@ -49,7 +52,7 @@ jobs:
             CODE_SIGN_IDENTITY="" \
             PROVISIONING_PROFILE_SPECIFIER=""
 
-      # Create unsigned IPA and zip
+      # 8️⃣ Extract .app and create unsigned IPA + zip
       - name: Create unsigned IPA and ZIP
         run: |
           ARCHIVE_PATH="build/Runner.xcarchive"
@@ -62,18 +65,28 @@ jobs:
             exit 1
           fi
 
+          echo "📱 Found app bundle"
+
+          # Copy .app to Payload folder
           rm -rf "$EXPORT_PATH/Payload"
           mkdir -p "$EXPORT_PATH/Payload"
           cp -r "$APP_PATH" "$EXPORT_PATH/Payload/"
 
           cd "$EXPORT_PATH"
+
+          # Create IPA
           rm -f ViperScoutApp.ipa ScoutApp.zip
           zip -r ViperScoutApp.ipa Payload
+
+          # Zip the IPA as ScoutApp.zip
           zip -r ScoutApp.zip ViperScoutApp.ipa
+
+          # Clean up
           rm -rf Payload
 
-          echo "✅ Created ScoutApp.zip containing ViperScoutApp.ipa"
+          echo "✅ Created ViperScoutApp.ipa and ScoutApp.zip"
 
+      # 9️⃣ Upload the ZIP artifact as ScoutApp.zip
       - name: Upload ZIP artifact
         uses: actions/upload-artifact@v4
         with:
