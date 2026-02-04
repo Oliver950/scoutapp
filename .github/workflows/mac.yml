@@ -26,44 +26,56 @@ jobs:
           /usr/libexec/PlistBuddy -c "Set :CFBundleIdentifier com.viper10554.scoutapp" ios/Runner/Info.plist || true
           sed -i '' 's/PRODUCT_BUNDLE_IDENTIFIER = .*;/PRODUCT_BUNDLE_IDENTIFIER = com.viper10554.scoutapp;/' ios/Runner.xcodeproj/project.pbxproj
 
-      # Build Flutter iOS output (no signing) → produces xcarchive
-      - name: Build Flutter iOS archive
-        run: flutter build ipa --release --no-codesign
+      # Build Flutter iOS app (no signing)
+      - name: Build Flutter iOS output
+        run: flutter build ios --release --no-codesign
 
-      # Export unsigned IPA from archive
-      - name: Export unsigned IPA
+      # Create archive (no signing, no team)
+      - name: Create iOS archive
         run: |
-          ARCHIVE_PATH="build/ios/archive/Runner.xcarchive"
-          EXPORT_PATH="build/ios/ipa"
+          xcodebuild archive \
+            -workspace ios/Runner.xcworkspace \
+            -scheme Runner \
+            -configuration Release \
+            -sdk iphoneos \
+            -destination 'generic/platform=iOS' \
+            -archivePath build/Runner.xcarchive \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY="" \
+            PROVISIONING_PROFILE_SPECIFIER=""
+
+      # Manually extract .app and zip into unsigned IPA
+      - name: Create unsigned IPA
+        run: |
+          ARCHIVE_PATH="build/Runner.xcarchive"
+          EXPORT_PATH="build/ipa"
           mkdir -p "$EXPORT_PATH"
 
-          cat > ExportOptions.plist <<EOF
-          <?xml version="1.0" encoding="UTF-8"?>
-          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-          <plist version="1.0">
-          <dict>
-            <key>method</key>
-            <string>debugging</string>
-            <key>signingStyle</key>
-            <string>manual</string>
-            <key>compileBitcode</key>
-            <false/>
-            <key>stripSwiftSymbols</key>
-            <true/>
-            <key>destination</key>
-            <string>export</string>
-          </dict>
-          </plist>
-          EOF
+          APP_PATH=$(find "$ARCHIVE_PATH/Products/Applications" -name "*.app" -maxdepth 1 | head -n 1)
+          if [ -z "$APP_PATH" ]; then
+            echo "❌ No .app found in archive"
+            exit 1
+          fi
 
-          xcodebuild -exportArchive \
-            -archivePath "$ARCHIVE_PATH" \
-            -exportOptionsPlist ExportOptions.plist \
-            -exportPath "$EXPORT_PATH" \
-            CODE_SIGNING_ALLOWED=NO
+          APP_NAME=$(basename "$APP_PATH")
+          IPA_NAME="${APP_NAME%.app}.ipa"
+
+          echo "📱 Found app: $APP_NAME"
+
+          rm -rf "$EXPORT_PATH/Payload"
+          mkdir -p "$EXPORT_PATH/Payload"
+          cp -r "$APP_PATH" "$EXPORT_PATH/Payload/"
+
+          cd "$EXPORT_PATH"
+          rm -f "$IPA_NAME"
+          zip -r "$IPA_NAME" Payload
+          rm -rf Payload
+
+          echo "✅ Unsigned IPA created at $EXPORT_PATH/$IPA_NAME"
 
       - name: Upload IPA artifact
         uses: actions/upload-artifact@v4
         with:
           name: scout-unsigned-ipa
-          path: build/ios/ipa/*.ipa
+          path: build/ipa/*.ipa
