@@ -21,6 +21,8 @@ flutter:
   uses-material-design: true
   assets:
   - assets/2026Field.png
+
+flutter_icons:
   image_path: assets/viper.png
   ios: true
   android: true
