@@ -23,6 +23,6 @@ flutter:
   - assets/2026Field.png
 
 flutter_icons:
-  image_path: assets/viper.png
+  image_path: assets/icon.png
   ios: true
   android: true
