@@ -1,4 +1,4 @@
-name: Build Unsigned iOS IPA
+name: Build Unsigned iOS IPA (Two Icons)
 
 on:
   push:
@@ -10,85 +10,114 @@ jobs:
     runs-on: macos-latest
 
     steps:
-      # 1️⃣ Checkout code
       - uses: actions/checkout@v4
 
-      # 2️⃣ Install Flutter
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
           cache: true
 
-      # 3️⃣ Install dependencies
       - name: Install dependencies
         run: flutter pub get
 
-      # 4️⃣ Generate iOS app icon from assets/viper.png
-      - name: Set app icon
-        run: flutter pub run flutter_launcher_icons:main
-
-      # 5️⃣ Force Scout bundle identifier
-      - name: Set bundle identifier
+      # --- BUILD 1: Neutral icon (logo.png) ---
+      - name: Set neutral app icon
         run: |
-          /usr/libexec/PlistBuddy -c "Set :CFBundleIdentifier com.viper10554.scoutapp" ios/Runner/Info.plist || true
-          sed -i '' 's/PRODUCT_BUNDLE_IDENTIFIER = .*;/PRODUCT_BUNDLE_IDENTIFIER = com.viper10554.scoutapp;/' ios/Runner.xcodeproj/project.pbxproj
+          echo "flutter_icons:
+  ios: true
+  android: false
+  image_path: assets/logo.png" > flutter_icons.yaml
+          flutter pub run flutter_launcher_icons:main
 
-      # 6️⃣ Build Flutter iOS app (no signing)
-      - name: Build Flutter iOS output
+      - name: Set bundle ID & app name (neutral)
+        run: |
+          /usr/libexec/PlistBuddy -c "Set :CFBundleIdentifier frc.2026.scoutingapp" ios/Runner/Info.plist || true
+          /usr/libexec/PlistBuddy -c "Set :CFBundleDisplayName 'FRC 2026 SCOUTING'" ios/Runner/Info.plist
+          sed -i '' 's/PRODUCT_BUNDLE_IDENTIFIER = .*;/PRODUCT_BUNDLE_IDENTIFIER = frc.2026.scoutingapp;/' ios/Runner.xcodeproj/project.pbxproj
+
+      - name: Build Flutter iOS output (neutral)
         run: flutter build ios --release --no-codesign
 
-      # 7️⃣ Create Xcode archive (no signing)
-      - name: Create iOS archive
+      - name: Create unsigned IPA (neutral)
         run: |
+          ARCHIVE="build/RunnerLogo.xcarchive"
+          EXPORT="build/ipa/logo"
+          mkdir -p "$EXPORT"
+
           xcodebuild archive \
             -workspace ios/Runner.xcworkspace \
             -scheme Runner \
             -configuration Release \
             -sdk iphoneos \
             -destination 'generic/platform=iOS' \
-            -archivePath build/Runner.xcarchive \
+            -archivePath "$ARCHIVE" \
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGN_IDENTITY="" \
             PROVISIONING_PROFILE_SPECIFIER=""
 
-      # 8️⃣ Extract .app and create unsigned IPA + zip
-      - name: Create unsigned IPA and ZIP
-        run: |
-          ARCHIVE_PATH="build/Runner.xcarchive"
-          EXPORT_PATH="build/ipa"
-          mkdir -p "$EXPORT_PATH"
+          APP_PATH=$(find "$ARCHIVE/Products/Applications" -name "*.app" -maxdepth 1 | head -n 1)
+          cp -r "$APP_PATH" "$EXPORT/Payload"
 
-          APP_PATH=$(find "$ARCHIVE_PATH/Products/Applications" -name "*.app" -maxdepth 1 | head -n 1)
-          if [ -z "$APP_PATH" ]; then
-            echo "❌ No .app found in archive"
-            exit 1
-          fi
-
-          echo "📱 Found app bundle"
-
-          # Copy .app to Payload folder
-          rm -rf "$EXPORT_PATH/Payload"
-          mkdir -p "$EXPORT_PATH/Payload"
-          cp -r "$APP_PATH" "$EXPORT_PATH/Payload/"
-
-          cd "$EXPORT_PATH"
-
-          # Create IPA
-          rm -f ViperScoutApp.ipa ScoutApp.zip
-          zip -r ViperScoutApp.ipa Payload
-
-          # Zip the IPA as ScoutApp.zip
-          zip -r ScoutApp.zip ViperScoutApp.ipa
-
-          # Clean up
+          cd "$EXPORT"
+          rm -f ScoutApp.ipa
+          zip -r ScoutApp.ipa Payload
           rm -rf Payload
+          echo "✅ Created ScoutApp.ipa with app name 'FRC 2026 SCOUTING'"
 
-          echo "✅ Created ViperScoutApp.ipa and ScoutApp.zip"
-
-      # 9️⃣ Upload the ZIP artifact as ScoutApp.zip
-      - name: Upload ZIP artifact
+      - name: Upload neutral IPA artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ScoutApp.zip
-          path: build/ipa/ScoutApp.zip
+          name: ScoutApp
+          path: build/ipa/logo/ScoutApp.ipa
+
+      # --- BUILD 2: Viper icon ---
+      - name: Set Viper app icon
+        run: |
+          echo "flutter_icons:
+  ios: true
+  android: false
+  image_path: assets/viper.png" > flutter_icons.yaml
+          flutter pub run flutter_launcher_icons:main
+
+      - name: Set bundle ID & app name (Viper)
+        run: |
+          /usr/libexec/PlistBuddy -c "Set :CFBundleIdentifier frc.2026.scoutingapp" ios/Runner/Info.plist || true
+          /usr/libexec/PlistBuddy -c "Set :CFBundleDisplayName 'FRC 2026 SCOUTING'" ios/Runner/Info.plist
+          sed -i '' 's/PRODUCT_BUNDLE_IDENTIFIER = .*;/PRODUCT_BUNDLE_IDENTIFIER = frc.2026.scoutingapp;/' ios/Runner.xcodeproj/project.pbxproj
+
+      - name: Build Flutter iOS output (Viper)
+        run: flutter build ios --release --no-codesign
+
+      - name: Create unsigned IPA (Viper)
+        run: |
+          ARCHIVE="build/RunnerViper.xcarchive"
+          EXPORT="build/ipa/viper"
+          mkdir -p "$EXPORT"
+
+          xcodebuild archive \
+            -workspace ios/Runner.xcworkspace \
+            -scheme Runner \
+            -configuration Release \
+            -sdk iphoneos \
+            -destination 'generic/platform=iOS' \
+            -archivePath "$ARCHIVE" \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY="" \
+            PROVISIONING_PROFILE_SPECIFIER=""
+
+          APP_PATH=$(find "$ARCHIVE/Products/Applications" -name "*.app" -maxdepth 1 | head -n 1)
+          cp -r "$APP_PATH" "$EXPORT/Payload"
+
+          cd "$EXPORT"
+          rm -f ViperScoutApp.ipa
+          zip -r ViperScoutApp.ipa Payload
+          rm -rf Payload
+          echo "✅ Created ViperScoutApp.ipa with app name 'FRC 2026 SCOUTING'"
+
+      - name: Upload Viper IPA artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ViperScoutApp
+          path: build/ipa/viper/ViperScoutApp.ipa
