@@ -18,12 +18,12 @@ class Teleop extends StatefulWidget {
   
 class _ThirdRouteState extends State<Teleop> {  
   String _output3 = '';
-  double _fuel = 0;
+  int _fuel = 0;
   final _shooting = Stopwatch();
   final _relay = Stopwatch();
   final _defense = Stopwatch();
-  bool _trench = false;
-  bool _bump = false;
+  int _trench = 0;
+  int _bump = 0;
   Timer? _uiTimer;
   final List<List<double>> points = [];
   double _rotation = 0;
@@ -61,11 +61,11 @@ class _ThirdRouteState extends State<Teleop> {
               ElevatedButton (
                 onPressed: () {
                   setState((){
-                    _fuel=_fuel-0.5;
+                    _fuel=_fuel-2;
                     if(_fuel<0){_fuel=0;}
                   });
                 },
-                child: const Text('-0.5'),
+                child: const Text('-2'),
               ),
               Container(width: 5,),
               ElevatedButton (
@@ -81,19 +81,19 @@ class _ThirdRouteState extends State<Teleop> {
               ElevatedButton (
                 onPressed: () {
                   setState((){
-                    _fuel=_fuel+0.5;
+                    _fuel++;
                   });
                 },
-                child: const Text('+0.5'),
+                child: const Text('+1'),
               ),
               Container(width: 5,),
               ElevatedButton (
                 onPressed: () {
                   setState((){
-                    _fuel++;
+                    _fuel=_fuel+2;
                   });
                 },
-                child: const Text('+1'),
+                child: const Text('+2'),
               ),
              ]
             ),
@@ -168,6 +168,8 @@ class _ThirdRouteState extends State<Teleop> {
                           setState(() {});
                         }
                       );
+                      _relay.stop();
+                      _defense.stop();
                     });
                   },
                   child: const Text('start'),
@@ -198,6 +200,8 @@ class _ThirdRouteState extends State<Teleop> {
                           setState(() {});
                         }
                       );
+                      _shooting.stop();
+                      _defense.stop();
                     });
                   },
                   child: const Text('start'),
@@ -229,6 +233,8 @@ class _ThirdRouteState extends State<Teleop> {
                         }
                       );
                     });
+                    _shooting.stop();
+                    _relay.stop();
                   },
                   child: const Text('start'),
                 ),
@@ -251,10 +257,10 @@ class _ThirdRouteState extends State<Teleop> {
                   child: const Text('Trench?'),
                 ),
                 Checkbox(
-                  value: _trench,
+                  value: _trench == 1,
                   onChanged: (bool? value) {
                     setState(() {
-                      _trench = value ?? false;
+                      _trench = value == true ? 1 : 0;
                     });
                   }
                 ),
@@ -262,16 +268,15 @@ class _ThirdRouteState extends State<Teleop> {
                   child: const Text('Bump?'),
                 ),
                 Checkbox(
-                  value: _bump,
+                  value: _bump == 1,
                   onChanged: (bool? value) {
                     setState(() {
-                      _bump = value ?? false;
+                      _bump = value == true ? 1 : 0;
                     });
                   }
                 )
               ],
             ),
-
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [ElevatedButton(
@@ -290,7 +295,7 @@ class _ThirdRouteState extends State<Teleop> {
                     _shooting.stop();
                     _relay.stop();
                     _defense.stop();
-                    _output3 ='$_fuel\t$_fuel\t${points.map((p) => '${p[0]},${p[1]}').join(';')}\t${_shooting.elapsed.inSeconds.toString()}\t${_relay.elapsed.inSeconds.toString()}\t${_defense.elapsed.inSeconds.toString()}\t$_trench\t$_bump';
+                    _output3 ='$_fuel\t${points.map((p) => '${p[0]},${p[1]}').join(';')}\t${_shooting.elapsed.inSeconds.toString()}\t${_relay.elapsed.inSeconds.toString()}\t${_defense.elapsed.inSeconds.toString()}\t$_trench\t$_bump';
                     Navigator.push(
                       context,
                       MaterialPageRoute(

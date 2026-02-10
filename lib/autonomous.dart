@@ -16,10 +16,10 @@ class Autonomous extends StatefulWidget{
     String _output2 = '';
     final _shooting = Stopwatch();
     final int _fuel = 0;
-    bool _outpost = false;
-    bool _depot = false;
-    bool _trench = false;
-    bool _bump = false;
+    int _outpost = 0;
+    int _depot = 0;
+    int _trench = 0;
+    int _bump = 0;
     int _tower = 0;
     Timer? _uiTimer;
     final List<List<double>> points = [];
@@ -138,10 +138,10 @@ class Autonomous extends StatefulWidget{
                   child: Text('Depot?'),
                 ),
                 Checkbox(
-                  value: _depot,
+                  value: _depot == 1,
                   onChanged: (bool? value) {
                     setState(() {
-                      _depot = value ?? false;
+                      _depot = value == true ? 1 : 0;
                     });
                   }
                 ),
@@ -149,10 +149,10 @@ class Autonomous extends StatefulWidget{
                   child: Text('Outpost?'),
                 ),
                 Checkbox(
-                  value: _outpost,
+                  value: _outpost == 1,
                   onChanged: (bool? value) {
                     setState(() {
-                      _outpost = value ?? false;
+                      _outpost = value == true ? 1 : 0;
                     });
                   }
                 )
@@ -166,10 +166,10 @@ class Autonomous extends StatefulWidget{
                   child: Text('Trench?'),
                 ),
                 Checkbox(
-                  value: _trench,
+                  value: _trench == 1,
                   onChanged: (bool? value) {
                     setState(() {
-                      _trench = value ?? false;
+                      _trench = value == true ? 1 : 0;
                     });
                   }
                 ),
@@ -177,10 +177,10 @@ class Autonomous extends StatefulWidget{
                   child: Text('Bump?'),
                 ),
                 Checkbox(
-                  value: _bump,
+                  value: _bump == 1,
                   onChanged: (bool? value) {
                     setState(() {
-                      _bump = value ?? false;
+                      _bump = value == true ? 1 : 0;
                     });
                   }
                 )

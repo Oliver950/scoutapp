@@ -44,7 +44,7 @@ Widget build(BuildContext context) {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Text('Oakbotics Scouting App',
+            const Text('2026 REBUILT Scouting App',
             style: TextStyle(
               fontSize: 24
             )),

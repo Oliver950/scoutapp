@@ -99,7 +99,7 @@ class _FourthRouteState extends State<Endgame> {
                     padding: const EdgeInsets.all(12),
                   ),
                   onPressed: () {
-                    _output4 =_tower;
+                    _output4 ='$_tower\t$_position';
                     Navigator.push(
                       context,
                       MaterialPageRoute(
