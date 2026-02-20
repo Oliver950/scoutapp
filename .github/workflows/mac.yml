@@ -24,7 +24,7 @@ jobs:
       - name: Set neutral app icon
         run: |
           mkdir -p ios/Runner/Assets.xcassets/AppIcon.appiconset
-          sed -i '' 's|image_path: assets/.*|image_path: assets/logo.png|' pubspec.yaml
+          sed -i '' 's|image_path: assets/.*|image_path: assets/icon.png|' pubspec.yaml
           flutter pub run flutter_launcher_icons
 
       - name: Set bundle ID & app name (neutral)
