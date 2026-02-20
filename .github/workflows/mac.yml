@@ -24,12 +24,7 @@ jobs:
       - name: Set neutral app icon
         run: |
           mkdir -p ios/Runner/Assets.xcassets/AppIcon.appiconset
-          cat > flutter_icons.yaml << 'EOF'
-flutter_launcher_icons:
-  ios: true
-  android: false
-  image_path: assets/logo.png
-EOF
+          printf 'flutter_launcher_icons:\n  ios: true\n  android: false\n  image_path: assets/logo.png\n' > flutter_icons.yaml
           flutter pub run flutter_launcher_icons
 
       - name: Set bundle ID & app name (neutral)
@@ -78,12 +73,7 @@ EOF
         run: |
           rm -rf ios/Runner/Assets.xcassets/AppIcon.appiconset
           mkdir -p ios/Runner/Assets.xcassets/AppIcon.appiconset
-          cat > flutter_icons.yaml << 'EOF'
-flutter_launcher_icons:
-  ios: true
-  android: false
-  image_path: assets/viper.png
-EOF
+          printf 'flutter_launcher_icons:\n  ios: true\n  android: false\n  image_path: assets/viper.png\n' > flutter_icons.yaml
           flutter pub run flutter_launcher_icons
 
       - name: Set bundle ID & app name (Viper)
