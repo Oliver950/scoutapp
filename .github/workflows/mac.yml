@@ -24,12 +24,12 @@ jobs:
       - name: Set neutral app icon
         run: |
           mkdir -p ios/Runner/Assets.xcassets/AppIcon.appiconset
-          cat > flutter_icons.yaml <<'EOF'
-          flutter_launcher_icons:
-            ios: true
-            android: false
-            image_path: assets/logo.png
-          EOF
+          cat > flutter_icons.yaml << 'EOF'
+flutter_launcher_icons:
+  ios: true
+  android: false
+  image_path: assets/logo.png
+EOF
           flutter pub run flutter_launcher_icons
 
       - name: Set bundle ID & app name (neutral)
@@ -67,29 +67,30 @@ jobs:
           rm -rf Payload
           echo "✅ Created ScoutApp.ipa"
 
-      # --- BUILD 2: Viper icon ---
-      - name: Clean before Viper build
-        run: |
-          flutter clean
-          flutter pub get
-          rm -rf ios/Runner/Assets.xcassets/AppIcon.appiconset
+      - name: Upload neutral IPA
+        uses: actions/upload-artifact@v4
+        with:
+          name: ScoutApp
+          path: build/ipa/logo/ScoutApp.ipa
 
-      - name: Set Viper app icon
+      # --- BUILD 2: Viper icon ---
+      - name: Reset icons for Viper build
         run: |
+          rm -rf ios/Runner/Assets.xcassets/AppIcon.appiconset
           mkdir -p ios/Runner/Assets.xcassets/AppIcon.appiconset
-          cat > flutter_icons.yaml <<'EOF'
-          flutter_launcher_icons:
-            ios: true
-            android: false
-            image_path: assets/viper.png
-          EOF
+          cat > flutter_icons.yaml << 'EOF'
+flutter_launcher_icons:
+  ios: true
+  android: false
+  image_path: assets/viper.png
+EOF
           flutter pub run flutter_launcher_icons
 
       - name: Set bundle ID & app name (Viper)
         run: |
-          /usr/libexec/PlistBuddy -c "Set :CFBundleIdentifier frc.2026.scoutingapp" ios/Runner/Info.plist || true
-          /usr/libexec/PlistBuddy -c "Set :CFBundleDisplayName FRC 2026 SCOUTING" ios/Runner/Info.plist
-          sed -i '' 's/PRODUCT_BUNDLE_IDENTIFIER = .*;/PRODUCT_BUNDLE_IDENTIFIER = frc.2026.scoutingapp;/' ios/Runner.xcodeproj/project.pbxproj
+          /usr/libexec/PlistBuddy -c "Set :CFBundleIdentifier frc.2026.viperscoutingapp" ios/Runner/Info.plist || true
+          /usr/libexec/PlistBuddy -c "Set :CFBundleDisplayName VIPER SCOUTING" ios/Runner/Info.plist
+          sed -i '' 's/PRODUCT_BUNDLE_IDENTIFIER = .*;/PRODUCT_BUNDLE_IDENTIFIER = frc.2026.viperscoutingapp;/' ios/Runner.xcodeproj/project.pbxproj
 
       - name: Build Flutter iOS (Viper)
         run: flutter build ios --release --no-codesign
@@ -120,10 +121,8 @@ jobs:
           rm -rf Payload
           echo "✅ Created ViperScoutApp.ipa"
 
-      - name: Upload IPAs
+      - name: Upload Viper IPA
         uses: actions/upload-artifact@v4
         with:
-          name: ScoutApps
-          path: |
-            build/ipa/logo/ScoutApp.ipa
-            build/ipa/viper/ViperScoutApp.ipa
+          name: ViperScoutApp
+          path: build/ipa/viper/ViperScoutApp.ipa
