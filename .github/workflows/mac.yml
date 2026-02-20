@@ -71,6 +71,13 @@ jobs:
           compression-level: 0
 
       # --- BUILD 2: Viper icon ---
+      - name: Set Viper app icon
+        run: |
+          rm -rf ios/Runner/Assets.xcassets/AppIcon.appiconset
+          mkdir -p ios/Runner/Assets.xcassets/AppIcon.appiconset
+          printf 'flutter_launcher_icons:\n  ios: true\n  android: false\n  image_path: assets/viper.png\n' > flutter_icons.yaml
+          flutter pub run flutter_launcher_icons
+
       - name: Set bundle ID & app name (Viper)
         run: |
           /usr/libexec/PlistBuddy -c "Set :CFBundleIdentifier frc.2026.viperscoutingapp" ios/Runner/Info.plist || true
@@ -78,7 +85,9 @@ jobs:
           sed -i '' 's/PRODUCT_BUNDLE_IDENTIFIER = .*;/PRODUCT_BUNDLE_IDENTIFIER = frc.2026.viperscoutingapp;/' ios/Runner.xcodeproj/project.pbxproj
 
       - name: Build Flutter iOS (Viper)
-        run: flutter build ios --release --no-codesign
+        run: |
+          rm -rf build/ios
+          flutter build ios --release --no-codesign
 
       - name: Create unsigned IPA (Viper)
         run: |
@@ -100,14 +109,6 @@ jobs:
             PROVISIONING_PROFILE_SPECIFIER=""
 
           APP_PATH=$(find "$ARCHIVE/Products/Applications" -name "*.app" -maxdepth 1 | head -n 1)
-
-          # Overwrite every icon in the bundle with viper.png scaled to match
-          for icon in "$APP_PATH"/*.png; do
-            H=$(sips -g pixelHeight "$icon" | tail -n1 | awk '{print $2}')
-            W=$(sips -g pixelWidth "$icon" | tail -n1 | awk '{print $2}')
-            sips -z $H $W assets/viper.png --out "$icon"
-          done
-
           mkdir -p "$EXPORT/Payload"
           cp -r "$APP_PATH" "$EXPORT/Payload/"
           cd "$EXPORT"
