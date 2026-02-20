@@ -20,13 +20,15 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
-      # --- BUILD 1: Neutral icon (logo.png) ---
+      # --- BUILD 1: Neutral icon ---
       - name: Set neutral app icon
         run: |
-          echo "flutter_icons:
-  ios: true
-  android: false
-  image_path: assets/logo.png" > flutter_icons.yaml
+          cat > flutter_icons.yaml <<'EOF'
+          flutter_icons:
+            ios: true
+            android: false
+            image_path: assets/logo.png
+          EOF
           flutter pub run flutter_launcher_icons:main
 
       - name: Set bundle ID & app name (neutral)
@@ -35,7 +37,7 @@ jobs:
           /usr/libexec/PlistBuddy -c "Set :CFBundleDisplayName FRC 2026 SCOUTING" ios/Runner/Info.plist
           sed -i '' 's/PRODUCT_BUNDLE_IDENTIFIER = .*;/PRODUCT_BUNDLE_IDENTIFIER = frc.2026.scoutingapp;/' ios/Runner.xcodeproj/project.pbxproj
 
-      - name: Build Flutter iOS output (neutral)
+      - name: Build Flutter iOS (neutral)
         run: flutter build ios --release --no-codesign
 
       - name: Create unsigned IPA (neutral)
@@ -58,14 +60,12 @@ jobs:
 
           APP_PATH=$(find "$ARCHIVE/Products/Applications" -name "*.app" -maxdepth 1 | head -n 1)
           cp -r "$APP_PATH" "$EXPORT/Payload"
-
           cd "$EXPORT"
-          rm -f ScoutApp.ipa
           zip -r ScoutApp.ipa Payload
           rm -rf Payload
-          echo "✅ Created ScoutApp.ipa with app name 'FRC 2026 SCOUTING'"
+          echo "✅ Created ScoutApp.ipa"
 
-      - name: Upload neutral IPA artifact
+      - name: Upload neutral IPA
         uses: actions/upload-artifact@v4
         with:
           name: ScoutApp
@@ -74,10 +74,12 @@ jobs:
       # --- BUILD 2: Viper icon ---
       - name: Set Viper app icon
         run: |
-          echo "flutter_icons:
-  ios: true
-  android: false
-  image_path: assets/viper.png" > flutter_icons.yaml
+          cat > flutter_icons.yaml <<'EOF'
+          flutter_icons:
+            ios: true
+            android: false
+            image_path: assets/viper.png
+          EOF
           flutter pub run flutter_launcher_icons:main
 
       - name: Set bundle ID & app name (Viper)
@@ -86,7 +88,7 @@ jobs:
           /usr/libexec/PlistBuddy -c "Set :CFBundleDisplayName FRC 2026 SCOUTING" ios/Runner/Info.plist
           sed -i '' 's/PRODUCT_BUNDLE_IDENTIFIER = .*;/PRODUCT_BUNDLE_IDENTIFIER = frc.2026.scoutingapp;/' ios/Runner.xcodeproj/project.pbxproj
 
-      - name: Build Flutter iOS output (Viper)
+      - name: Build Flutter iOS (Viper)
         run: flutter build ios --release --no-codesign
 
       - name: Create unsigned IPA (Viper)
@@ -109,14 +111,12 @@ jobs:
 
           APP_PATH=$(find "$ARCHIVE/Products/Applications" -name "*.app" -maxdepth 1 | head -n 1)
           cp -r "$APP_PATH" "$EXPORT/Payload"
-
           cd "$EXPORT"
-          rm -f ViperScoutApp.ipa
           zip -r ViperScoutApp.ipa Payload
           rm -rf Payload
-          echo "✅ Created ViperScoutApp.ipa with app name 'FRC 2026 SCOUTING'"
+          echo "✅ Created ViperScoutApp.ipa"
 
-      - name: Upload Viper IPA artifact
+      - name: Upload Viper IPA
         uses: actions/upload-artifact@v4
         with:
           name: ViperScoutApp
