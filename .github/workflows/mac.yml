@@ -49,6 +49,7 @@ jobs:
             -sdk iphoneos \
             -destination 'generic/platform=iOS' \
             -archivePath "$ARCHIVE" \
+            -derivedDataPath build/DerivedDataLogo \
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGN_IDENTITY="" \
@@ -73,6 +74,7 @@ jobs:
       - name: Reset icons for Viper build
         run: |
           rm -rf ios/Runner/Assets.xcassets/AppIcon.appiconset
+          rm -rf ~/Library/Developer/Xcode/DerivedData
           mkdir -p ios/Runner/Assets.xcassets/AppIcon.appiconset
           printf 'flutter_launcher_icons:\n  ios: true\n  android: false\n  image_path: assets/viper.png\n' > flutter_icons.yaml
           flutter pub run flutter_launcher_icons
@@ -100,6 +102,7 @@ jobs:
             -sdk iphoneos \
             -destination 'generic/platform=iOS' \
             -archivePath "$ARCHIVE" \
+            -derivedDataPath build/DerivedDataViper \
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGN_IDENTITY="" \
