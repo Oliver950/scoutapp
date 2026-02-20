@@ -22,7 +22,7 @@ flutter:
   assets:
   - assets/2026Field.png
 
-flutter_icons:
+flutter_launcher_icons:
   image_path: assets/icon.png
   ios: true
   android: true
