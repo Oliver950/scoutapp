@@ -67,6 +67,7 @@ jobs:
         with:
           name: ScoutApp
           path: build/ipa/logo/ScoutApp.ipa
+          compression-level: 0
 
       # --- BUILD 2: Viper icon ---
       - name: Reset icons for Viper build
@@ -75,6 +76,7 @@ jobs:
           mkdir -p ios/Runner/Assets.xcassets/AppIcon.appiconset
           printf 'flutter_launcher_icons:\n  ios: true\n  android: false\n  image_path: assets/viper.png\n' > flutter_icons.yaml
           flutter pub run flutter_launcher_icons
+          touch ios/Runner/Assets.xcassets/AppIcon.appiconset/*
 
       - name: Set bundle ID & app name (Viper)
         run: |
@@ -116,3 +118,4 @@ jobs:
         with:
           name: ViperScoutApp
           path: build/ipa/viper/ViperScoutApp.ipa
+          compression-level: 0
