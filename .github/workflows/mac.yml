@@ -59,7 +59,8 @@ jobs:
             PROVISIONING_PROFILE_SPECIFIER=""
 
           APP_PATH=$(find "$ARCHIVE/Products/Applications" -name "*.app" -maxdepth 1 | head -n 1)
-          cp -r "$APP_PATH" "$EXPORT/Payload"
+          mkdir -p "$EXPORT/Payload"
+          cp -r "$APP_PATH" "$EXPORT/Payload/"
           cd "$EXPORT"
           zip -r ScoutApp.ipa Payload
           rm -rf Payload
@@ -72,6 +73,12 @@ jobs:
           path: build/ipa/logo/ScoutApp.ipa
 
       # --- BUILD 2: Viper icon ---
+      - name: Clean before Viper build
+        run: |
+          flutter clean
+          flutter pub get
+          rm -rf ios/Runner/Assets.xcassets/AppIcon.appiconset
+
       - name: Set Viper app icon
         run: |
           cat > flutter_icons.yaml <<'EOF'
@@ -110,7 +117,8 @@ jobs:
             PROVISIONING_PROFILE_SPECIFIER=""
 
           APP_PATH=$(find "$ARCHIVE/Products/Applications" -name "*.app" -maxdepth 1 | head -n 1)
-          cp -r "$APP_PATH" "$EXPORT/Payload"
+          mkdir -p "$EXPORT/Payload"
+          cp -r "$APP_PATH" "$EXPORT/Payload/"
           cd "$EXPORT"
           zip -r ViperScoutApp.ipa Payload
           rm -rf Payload
