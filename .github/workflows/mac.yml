@@ -23,13 +23,14 @@ jobs:
       # --- BUILD 1: Neutral icon ---
       - name: Set neutral app icon
         run: |
+          mkdir -p ios/Runner/Assets.xcassets/AppIcon.appiconset
           cat > flutter_icons.yaml <<'EOF'
-          flutter_icons:
+          flutter_launcher_icons:
             ios: true
             android: false
             image_path: assets/logo.png
           EOF
-          flutter pub run flutter_launcher_icons:main
+          flutter pub run flutter_launcher_icons
 
       - name: Set bundle ID & app name (neutral)
         run: |
@@ -66,12 +67,6 @@ jobs:
           rm -rf Payload
           echo "✅ Created ScoutApp.ipa"
 
-      - name: Upload neutral IPA
-        uses: actions/upload-artifact@v4
-        with:
-          name: ScoutApp
-          path: build/ipa/logo/ScoutApp.ipa
-
       # --- BUILD 2: Viper icon ---
       - name: Clean before Viper build
         run: |
@@ -81,13 +76,14 @@ jobs:
 
       - name: Set Viper app icon
         run: |
+          mkdir -p ios/Runner/Assets.xcassets/AppIcon.appiconset
           cat > flutter_icons.yaml <<'EOF'
-          flutter_icons:
+          flutter_launcher_icons:
             ios: true
             android: false
             image_path: assets/viper.png
           EOF
-          flutter pub run flutter_launcher_icons:main
+          flutter pub run flutter_launcher_icons
 
       - name: Set bundle ID & app name (Viper)
         run: |
@@ -124,8 +120,10 @@ jobs:
           rm -rf Payload
           echo "✅ Created ViperScoutApp.ipa"
 
-      - name: Upload Viper IPA
+      - name: Upload IPAs
         uses: actions/upload-artifact@v4
         with:
-          name: ViperScoutApp
-          path: build/ipa/viper/ViperScoutApp.ipa
+          name: ScoutApps
+          path: |
+            build/ipa/logo/ScoutApp.ipa
+            build/ipa/viper/ViperScoutApp.ipa
