@@ -1,241 +1,302 @@
+import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'teleop.dart';
-import 'dart:async';
 
-class Autonomous extends StatefulWidget{
+class Autonomous extends StatefulWidget {
   final String output1;
-
   const Autonomous({super.key, required this.output1});
 
   @override
-  _SecondRouteState createState() => _SecondRouteState();
+  State<Autonomous> createState() => _AutonomousState();
+}
+
+class _AutonomousState extends State<Autonomous> {
+  String _output2 = '';
+
+  final Stopwatch _shooting = Stopwatch();
+  Timer? _uiTimer;
+
+  final int _fuel = 0;
+  bool _outpost = false;
+  bool _depot = false;
+  bool _trench = false;
+  bool _bump = false;
+  bool _tower = false;
+
+  final List<Offset> _points = [];
+  double _rotation = 0;
+
+  @override
+  void dispose() {
+    _uiTimer?.cancel();
+    super.dispose();
   }
 
-  class _SecondRouteState extends State<Autonomous>{
-    String _output2 = '';
-    final _shooting = Stopwatch();
-    final int _fuel = 0;
-    int _outpost = 0;
-    int _depot = 0;
-    int _trench = 0;
-    int _bump = 0;
-    int _tower = 0;
-    Timer? _uiTimer;
-    final List<List<double>> points = [];
-    double _rotation = 0;
+  void _startTimer() {
+    _shooting.start();
+    _uiTimer ??= Timer.periodic(const Duration(milliseconds: 100), (_) {
+      if (mounted) setState(() {});
+    });
+    setState(() {});
+  }
+
+  void _stopTimer() {
+    _shooting.stop();
+    if (!_shooting.isRunning) {
+      _uiTimer?.cancel();
+      _uiTimer = null;
+    }
+    setState(() {});
+  }
+
+  void _next() {
+    _output2 =
+    '$_fuel\t'
+        '${_points.map((p) => '${p.dx.toStringAsFixed(2)},${p.dy.toStringAsFixed(2)}').join(';')}\t'
+        '${_outpost ? 1 : 0}\t'
+        '${_depot ? 1 : 0}\t'
+        '${_trench ? 1 : 0}\t'
+        '${_bump ? 1 : 0}\t'
+        '${_tower ? 1 : 0}';
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => Teleop(output2: _output2, output1: widget.output1),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
 
-    return Theme(
-      data: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue)
-      ),
-    child: Scaffold(
+    return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
-        title: const Text('Autonomous',
-        style: TextStyle(
-          fontSize: 20,
-        )),
-        toolbarHeight: 25,
-        backgroundColor: Colors.blue,
+        title: const Text('Autonomous'),
+        centerTitle: true,
       ),
       body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Text('Time shooting'),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 520),
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                ElevatedButton (
-                  onPressed: () {
-                    setState(() {
-                      _shooting.start();
-                      _uiTimer ??= Timer.periodic(
-                        const Duration(milliseconds: 100),
-                        (_) {
-                          setState(() {});
-                        }
-                      );
-                    });
-                  },
-                  child: const Text('start'),
+                Card(
+                  elevation: 2,
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Text(
+                          'Shooting Timer',
+                          style: Theme.of(context)
+                              .textTheme
+                              .titleMedium
+                              ?.copyWith(fontWeight: FontWeight.w700),
+                        ),
+                        const SizedBox(height: 12),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: FilledButton.icon(
+                                onPressed:
+                                _shooting.isRunning ? null : _startTimer,
+                                icon: const Icon(Icons.play_arrow),
+                                label: const Text('Start'),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                  vertical: 12, horizontal: 16),
+                              decoration: BoxDecoration(
+                                border: Border.all(color: scheme.outlineVariant),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Text(
+                                '${_shooting.elapsed.inSeconds}s',
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .titleMedium
+                                    ?.copyWith(fontWeight: FontWeight.w700),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: OutlinedButton.icon(
+                                onPressed:
+                                _shooting.isRunning ? _stopTimer : null,
+                                icon: const Icon(Icons.stop),
+                                label: const Text('Stop'),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
-                Container(width: 25, alignment: Alignment.center, child: Text(_shooting.elapsed.inSeconds.toString()),),
-                ElevatedButton (
-                  onPressed: () {
-                    setState(() {
-                      _shooting.stop();
-                    });
-                  },
-                  child: const Text('stop'),
-                )
-              ],
-            ),
-            const SizedBox(height: 12),
-            GestureDetector(
-              onTapDown: (details){
-                setState(() {
-                  points.add([double.parse(details.localPosition.dx.toStringAsFixed(2)),double.parse(details.localPosition.dy.toStringAsFixed(2))]);
-                });
-              },
-              child: Stack(
-                children: [
-                  Transform.rotate(
-                    angle: _rotation,
-                    child: Image.asset(
-                      'assets/2026Field.png',
-                      width: 356.5,
-                      height: 174,
-                      fit:BoxFit.contain
+
+                const SizedBox(height: 12),
+
+                Card(
+                  elevation: 2,
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Text(
+                          'Tap shots on the field',
+                          style: Theme.of(context)
+                              .textTheme
+                              .titleMedium
+                              ?.copyWith(fontWeight: FontWeight.w700),
+                        ),
+                        const SizedBox(height: 12),
+
+                        Center(
+                          child: GestureDetector(
+                            onTapDown: (details) {
+                              setState(() {
+                                _points.add(details.localPosition);
+                              });
+                            },
+                            child: Stack(
+                              children: [
+                                Transform.rotate(
+                                  angle: _rotation,
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(12),
+                                    child: Image.asset(
+                                      'assets/2026Field.png',
+                                      width: 356.5,
+                                      height: 174,
+                                      fit: BoxFit.contain,
+                                    ),
+                                  ),
+                                ),
+                                ..._points.map(
+                                      (p) => Positioned(
+                                    left: p.dx - 5,
+                                    top: p.dy - 5,
+                                    child: Container(
+                                      width: 10,
+                                      height: 10,
+                                      decoration: BoxDecoration(
+                                        color: scheme.error,
+                                        shape: BoxShape.circle,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+
+                        const SizedBox(height: 8),
+
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            IconButton(
+                              tooltip: 'Rotate 180°',
+                              icon: const Icon(Icons.rotate_left),
+                              onPressed: () => setState(() => _rotation += pi),
+                            ),
+                            IconButton(
+                              tooltip: 'Undo last tap',
+                              icon: const Icon(Icons.undo),
+                              onPressed: _points.isNotEmpty
+                                  ? () => setState(() => _points.removeLast())
+                                  : null,
+                            ),
+                            IconButton(
+                              tooltip: 'Clear',
+                              icon: const Icon(Icons.delete_outline),
+                              onPressed: _points.isNotEmpty
+                                  ? () => setState(() => _points.clear())
+                                  : null,
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 12),
+
+                Card(
+                  elevation: 2,
+                  child: Padding(
+                    padding: const EdgeInsets.all(8),
+                    child: Column(
+                      children: [
+                        SwitchListTile(
+                          title: const Text('Depot'),
+                          value: _depot,
+                          onChanged: (v) => setState(() => _depot = v),
+                        ),
+                        SwitchListTile(
+                          title: const Text('Outpost'),
+                          value: _outpost,
+                          onChanged: (v) => setState(() => _outpost = v),
+                        ),
+                        SwitchListTile(
+                          title: const Text('Trench'),
+                          value: _trench,
+                          onChanged: (v) => setState(() => _trench = v),
+                        ),
+                        SwitchListTile(
+                          title: const Text('Bump'),
+                          value: _bump,
+                          onChanged: (v) => setState(() => _bump = v),
+                        ),
+                        SwitchListTile(
+                          title: const Text('Climbed'),
+                          value: _tower,
+                          onChanged: (v) => setState(() => _tower = v),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 16),
+
+                // NAV BUTTONS
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        icon: const Icon(Icons.arrow_back),
+                        label: const Text('Back'),
+                        onPressed: () => Navigator.pop(context),
                       ),
                     ),
-                    ...points.map((p) => Positioned(
-              left: p[0]-5,
-              top: p[1]-5,
-              child: Container(
-                width: 10,
-                height: 10,
-                decoration: const BoxDecoration(
-                  color: Colors.red,
-                  shape: BoxShape.circle,
-                ),
-              ),
-            )),
-                ],
-              ),
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                IconButton(
-                  icon: const Icon(Icons.rotate_left),
-                  onPressed: () {
-                    setState(() {
-                      _rotation += pi;
-                    });
-                  }
-                ),
-                IconButton(
-                  icon: const Icon(Icons.undo),
-                  onPressed: points.isNotEmpty ? () {
-                    setState(() {
-                      points.removeLast();
-                    });
-                  }
-                  : null,
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: FilledButton.icon(
+                        icon: const Icon(Icons.arrow_forward),
+                        label: const Text('Next'),
+                        onPressed: _next,
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
-            const SizedBox(height: 12),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const SizedBox(
-                  child: Text('Depot?'),
-                ),
-                Checkbox(
-                  value: _depot == 1,
-                  onChanged: (bool? value) {
-                    setState(() {
-                      _depot = value == true ? 1 : 0;
-                    });
-                  }
-                ),
-                const SizedBox(
-                  child: Text('Outpost?'),
-                ),
-                Checkbox(
-                  value: _outpost == 1,
-                  onChanged: (bool? value) {
-                    setState(() {
-                      _outpost = value == true ? 1 : 0;
-                    });
-                  }
-                )
-              ],
-            ),
-            const SizedBox(height: 12),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const SizedBox(
-                  child: Text('Trench?'),
-                ),
-                Checkbox(
-                  value: _trench == 1,
-                  onChanged: (bool? value) {
-                    setState(() {
-                      _trench = value == true ? 1 : 0;
-                    });
-                  }
-                ),
-                const SizedBox(
-                  child: Text('Bump?'),
-                ),
-                Checkbox(
-                  value: _bump == 1,
-                  onChanged: (bool? value) {
-                    setState(() {
-                      _bump = value == true ? 1 : 0;
-                    });
-                  }
-                )
-              ],
-            ),
-            const SizedBox(height: 12),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const SizedBox(
-                  child: Text('Climbed?'),
-                ),
-                Checkbox(
-                  value: _tower == 1,
-                  onChanged: (bool? value) {
-                    setState(() {
-                      _tower = value == true ? 1 : 0;
-                    });
-                  }
-                )
-              ],
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [ElevatedButton(
-              onPressed: (){
-                Navigator.pop(context);
-              },
-              child: const Text('   Go Back   '),
-            ),
-            ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    textStyle: const TextStyle(fontSize:16),
-                    padding: const EdgeInsets.all(12),
-                  ),
-                  onPressed: () {
-                    _output2 ='$_fuel\t${points.map((p) => '${p[0]},${p[1]}').join(';')}\t$_outpost\t$_depot\t$_trench\t$_bump\t$_tower';
-                    Navigator.push(
-                      
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => Teleop( 
-                          output2: _output2,
-                          output1: widget.output1)),
-                    );
-                  },
-                  child: const Text('        Next        '),
-                )
-              ],
-            )
-          ],
-        )
+          ),
+        ),
       ),
-    )
     );
   }
 }
-

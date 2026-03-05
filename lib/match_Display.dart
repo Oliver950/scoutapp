@@ -1,159 +1,199 @@
 import 'package:flutter/material.dart';
-import 'pregame.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'pregame.dart';
 
 class MatchDisplay extends StatefulWidget {
   final String finaloutput;
-  static List<String> outputs = [];
-
   const MatchDisplay({super.key, required this.finaloutput});
 
   @override
-  _MatchDisplayState createState() => _MatchDisplayState();
+  State<MatchDisplay> createState() => _MatchDisplayState();
 }
 
 class _MatchDisplayState extends State<MatchDisplay> {
-  List<String> selectedOutputs = [];
-  String? qrData;
+  static const _storageKey = 'outputs';
+
+  List<String> _outputs = [];
+  final Set<String> _selected = {};
+  String? _qrData;
 
   @override
   void initState() {
     super.initState();
-    _initializeOutputs();
+    _init();
   }
 
-  Future<void> _initializeOutputs() async {
-    await _loadOutputs();
+  Future<void> _init() async {
+    final prefs = await SharedPreferences.getInstance();
+    final saved = prefs.getStringList(_storageKey) ?? [];
 
-    if (widget.finaloutput.isNotEmpty) {
-      MatchDisplay.outputs.add(widget.finaloutput);
-      await _saveOutputs();
-      setState(() {});
+    if (widget.finaloutput.trim().isNotEmpty) {
+      saved.add(widget.finaloutput.trim());
+      await prefs.setStringList(_storageKey, saved);
     }
+
+    if (!mounted) return;
+    setState(() => _outputs = saved);
   }
 
+  Future<void> _save() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setStringList(_storageKey, _outputs);
+  }
 
-  void _onOutputTapped(String output) {
+  void _toggleSelect(String output) {
     setState(() {
-      if (selectedOutputs.contains(output)) {
-        selectedOutputs.remove(output);
+      if (_selected.contains(output)) {
+        _selected.remove(output);
       } else {
-        selectedOutputs.add(output);
+        _selected.add(output);
       }
+      _qrData = null;
     });
   }
 
-  void _deleteSelectedOutputs(){
+  Future<void> _deleteSelected() async {
+    if (_selected.isEmpty) return;
+
     setState(() {
-      MatchDisplay.outputs.removeWhere((output) => selectedOutputs.contains(output));
-      selectedOutputs.clear();
-      _saveOutputs();
+      _outputs.removeWhere(_selected.contains);
+      _selected.clear();
+      _qrData = null;
     });
+
+    await _save();
   }
 
-  void _generateQrCode(){
-      setState(() {
-        qrData = selectedOutputs.join('\n');
-      });
-  }
-
-  Future<void> _loadOutputs() async{
-    SharedPreferences prefs = await SharedPreferences.getInstance();
+  void _generateQr() {
+    if (_selected.isEmpty) return;
     setState(() {
-      MatchDisplay.outputs = prefs.getStringList('outputs') ?? [];
+      _qrData = _selected.join('\n');
     });
-  }
-
-  Future<void> _saveOutputs() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    prefs.setStringList('outputs', MatchDisplay.outputs);
   }
 
   @override
   Widget build(BuildContext context) {
-    return Theme(
-      data: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
+    final scheme = Theme.of(context).colorScheme;
+    final hasSelection = _selected.isNotEmpty;
+
+    return Scaffold(
+      appBar: AppBar(
+        automaticallyImplyLeading: false,
+        title: const Text('Games Viewer'),
+        centerTitle: true,
       ),
-      child: Scaffold(
-        appBar: AppBar(
-          automaticallyImplyLeading: false,
-          title: const Text(
-            'Games Viewer',
-            style: TextStyle(fontSize: 20),
-          ),
-          toolbarHeight: 20,
-          backgroundColor: Colors.blue,
-        ),
-        body: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  ElevatedButton(
-                    onPressed: _deleteSelectedOutputs,
-                    child: const Text('Delete'),
-                    ),
-                    ElevatedButton(
-                      onPressed: _generateQrCode,
-                      child: const Text ('Generate Qr code')
-                    )
-                ],
-              ),
-              if(qrData !=null)
-              Padding(padding: 
-              const EdgeInsets.all(16),
-              child: QrImageView(
-                data: qrData!,
-                version: QrVersions.auto,
-                size: 200,
-              ),),
-              Expanded(
-                child:SingleChildScrollView(
-                  child: Column(
-                    children: [
-                      MatchDisplay.outputs.isEmpty
-                          ?const Center(child: Text('No matches available'))
-                          :ListView.builder(
-                              shrinkWrap: true,
-                              physics: const NeverScrollableScrollPhysics(),
-                              itemCount: MatchDisplay.outputs.length,
-                              itemBuilder: (context, index) {
-                                final output = MatchDisplay.outputs[index];
-                                final isSelected = selectedOutputs.contains(output);
-                                return ListTile(
-                                  title: Text(output, style: const TextStyle(fontSize: 12)),
-                                  tileColor: isSelected ? Colors.blue : null,
-                                  onTap: () => _onOutputTapped(output),
-                                );
-                              },
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 600),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              children: [
+                Card(
+                  elevation: 2,
+                  child: Padding(
+                    padding: const EdgeInsets.all(12),
+                    child: Column(
+                      children: [
+                        Row(
+                          children: [
+                            Expanded(
+                              child: FilledButton.icon(
+                                onPressed: hasSelection ? _generateQr : null,
+                                icon: const Icon(Icons.qr_code),
+                                label: const Text('Generate QR'),
+                              ),
                             ),
-                    ],
-                  ),
-                )
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      textStyle: const TextStyle(fontSize: 16),
-                      padding: const EdgeInsets.all(12),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: OutlinedButton.icon(
+                                onPressed: hasSelection ? _deleteSelected : null,
+                                icon: const Icon(Icons.delete_outline),
+                                label: const Text('Delete'),
+                              ),
+                            ),
+                          ],
+                        ),
+                        if (_qrData != null) ...[
+                          const SizedBox(height: 12),
+                          Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              border: Border.all(color: scheme.outlineVariant),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: QrImageView(
+                              data: _qrData!,
+                              version: QrVersions.auto,
+                              size: 220,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Selected: ${_selected.length}',
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodyMedium
+                                ?.copyWith(color: scheme.onSurfaceVariant),
+                          ),
+                        ],
+                      ],
                     ),
+                  ),
+                ),
+
+                const SizedBox(height: 12),
+
+                Expanded(
+                  child: Card(
+                    elevation: 2,
+                    child: _outputs.isEmpty
+                        ? const Center(child: Text('No matches available'))
+                        : ListView.separated(
+                      itemCount: _outputs.length,
+                      separatorBuilder: (_, __) =>
+                          Divider(height: 1, color: scheme.outlineVariant),
+                      itemBuilder: (context, index) {
+                        final output = _outputs[index];
+                        final selected = _selected.contains(output);
+
+                        return ListTile(
+                          dense: true,
+                          title: Text(
+                            output,
+                            style: const TextStyle(fontSize: 12),
+                          ),
+                          selected: selected,
+                          selectedTileColor: scheme.primaryContainer,
+                          trailing: selected
+                              ? Icon(Icons.check_circle, color: scheme.primary)
+                              : null,
+                          onTap: () => _toggleSelect(output),
+                        );
+                      },
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 12),
+
+                SizedBox(
+                  width: double.infinity,
+                  height: 48,
+                  child: OutlinedButton.icon(
+                    icon: const Icon(Icons.arrow_back),
+                    label: const Text('Back to Scouting'),
                     onPressed: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (context) => const Pregame()),
+                        MaterialPageRoute(builder: (_) => const Pregame()),
                       );
                     },
-                    child: const Text('Back to Scouting'),
                   ),
-                ],
-              )
-            ],
+                ),
+              ],
+            ),
           ),
         ),
       ),
