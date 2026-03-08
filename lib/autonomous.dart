@@ -17,7 +17,6 @@ class _AutonomousState extends State<Autonomous> {
   final Stopwatch _shooting = Stopwatch();
   Timer? _uiTimer;
 
-  final int _fuel = 0;
   bool _outpost = false;
   bool _depot = false;
   bool _trench = false;
@@ -52,7 +51,7 @@ class _AutonomousState extends State<Autonomous> {
 
   void _next() {
     _output2 =
-    '$_fuel\t'
+    '${_shooting.elapsed.inSeconds}\t'
         '${_points.map((p) => '${p.dx.toStringAsFixed(2)},${p.dy.toStringAsFixed(2)}').join(';')}\t'
         '${_outpost ? 1 : 0}\t'
         '${_depot ? 1 : 0}\t'
